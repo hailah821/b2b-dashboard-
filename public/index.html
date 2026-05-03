@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B2B Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg:#0d0f12; --bg2:#141720; --bg3:#1c2030; --bg4:#242840;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.12);
+  --text:#e8eaf0; --text2:#8890a8; --text3:#555d78;
+  --accent:#4f7fff; --accent2:#2d55cc;
+  --green:#3ecf72; --red:#ff5c5c; --amber:#f5a623; --teal:#2dd4bf;
+  --font:'IBM Plex Sans Arabic',sans-serif; --mono:'IBM Plex Mono',monospace;
+  --r:10px; --rl:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
+
+/* LAYOUT */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:220px;flex-shrink:0;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;right:0;bottom:0;z-index:100}
+.logo{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid var(--border)}
+.logo-name{font-size:1.1rem;font-weight:600;letter-spacing:-0.5px}
+.logo-sub{font-size:11px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+.sidebar-nav{flex:1;padding:1rem 0.75rem;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.nav-sec{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;padding:0.75rem 0.5rem 0.25rem}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--r);color:var(--text2);font-size:13px;cursor:pointer;transition:all .15s;text-decoration:none;border:none;background:none;width:100%;text-align:right;font-family:var(--font)}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:rgba(79,127,255,0.12);color:var(--accent)}
+.nav-item svg{width:15px;height:15px;flex-shrink:0;opacity:.75}
+.sidebar-foot{padding:1rem 0.75rem;border-top:1px solid var(--border)}
+.conn-badge{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--r);background:var(--bg3);font-size:12px;color:var(--text2)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0;transition:all .3s}
+.dot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
+
+/* MAIN */
+.main{margin-right:220px;flex:1}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.9rem 2rem;border-bottom:1px solid var(--border);background:rgba(13,15,18,.85);backdrop-filter:blur(12px);position:sticky;top:0;z-index:50;gap:1rem}
+.topbar-title{font-size:1rem;font-weight:500;white-space:nowrap}
+.topbar-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{padding:7px 14px;border-radius:var(--r);border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:12px;font-family:var(--font);cursor:pointer;transition:all .15s}
+.btn:hover{background:var(--bg4);color:var(--text)}
+.btn-p{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-p:hover{background:var(--accent2)}
+.content{padding:2rem}
+
+/* SECTIONS */
+.sec{display:none}.sec.active{display:block}
+
+/* PAGE HEADER */
+.ph{margin-bottom:1.75rem}
+.ph h1{font-size:1.3rem;font-weight:600;letter-spacing:-.5px}
+.ph p{font-size:13px;color:var(--text3);margin-top:4px}
+
+/* METRICS */
+.mg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:1.75rem}
+.mc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;position:relative;overflow:hidden;transition:border .2s}
+.mc:hover{border-color:var(--border2)}
+.mc-l{font-size:11px;color:var(--text3);font-weight:500;letter-spacing:.5px;text-transform:uppercase;margin-bottom:.5rem}
+.mc-v{font-size:1.75rem;font-weight:600;letter-spacing:-1px}
+.mc-v.g{color:var(--green)}.mc-v.r{color:var(--red)}.mc-v.a{color:var(--accent)}
+.mc-s{font-size:11px;color:var(--text3);margin-top:4px}
+.mc-glow{position:absolute;bottom:-20px;right:-20px;width:80px;height:80px;border-radius:50%;opacity:.06;pointer-events:none}
+
+/* TABLE */
+.tc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:1.5rem}
+.th-bar{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid var(--border)}
+.th-bar-title{font-size:13px;font-weight:500}
+.tc-count{font-size:11px;color:var(--text3);background:var(--bg3);padding:2px 8px;border-radius:100px}
+table{width:100%;border-collapse:collapse}
+th{padding:10px 16px;text-align:right;font-size:11px;font-weight:500;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--bg3)}
+td{padding:11px 16px;font-size:13px;color:var(--text2);border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
+.tdn{color:var(--text);font-weight:500}
+
+/* BADGES */
+.b{display:inline-flex;align-items:center;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:500}
+.bg{background:rgba(62,207,114,.1);color:var(--green)}
+.br{background:rgba(255,92,92,.1);color:var(--red)}
+.bb{background:rgba(79,127,255,.12);color:var(--accent)}
+.ba{background:rgba(245,166,35,.1);color:var(--amber)}
+.bt{background:rgba(45,212,191,.1);color:var(--teal)}
+
+/* CHARTS */
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.5rem}
+.cc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem}
+.cc.full{grid-column:1/-1}
+.cc-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.cc-t{font-size:13px;font-weight:500}
+.leg{display:flex;gap:12px;flex-wrap:wrap}
+.li{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)}
+.ld{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+/* LEADERBOARD */
+.lb-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.lb-row:last-child{border-bottom:none}
+.lb-rk{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:var(--bg3);color:var(--text3);flex-shrink:0}
+.lb-rk.top{background:rgba(245,166,35,.15);color:var(--amber)}
+.lb-nm{flex:1;font-size:13px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-vl{font-size:13px;flex-shrink:0}
+.lb-bw{width:70px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;flex-shrink:0}
+.lb-bf{height:100%;border-radius:2px}
+
+/* MISC */
+.loading{text-align:center;padding:3rem 1rem;color:var(--text3);font-size:13px}
+.spin{width:24px;height:24px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;margin:0 auto 1rem}
+@keyframes sp{to{transform:rotate(360deg)}}
+.err{background:rgba(255,92,92,.06);border:1px solid rgba(255,92,92,.2);border-radius:var(--r);padding:1rem 1.25rem;font-size:13px;color:#ff8080;margin-bottom:1rem}
+.empty{padding:2rem;text-align:center;color:var(--text3);font-size:13px}
+.last-upd{font-size:11px;color:var(--text3)}
+
+/* SETTINGS */
+.sc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.5rem;margin-bottom:1.5rem}
+.sc-t{font-size:14px;font-weight:500;margin-bottom:.75rem}
+.sc-d{font-size:13px;color:var(--text2);line-height:1.7}
+.code{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:.75rem 1rem;font-family:var(--mono);font-size:11px;color:var(--teal);margin:.75rem 0;line-height:1.6;direction:ltr;text-align:left}
+.steps{list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:.75rem}
+.steps li{display:flex;gap:10px;font-size:13px;color:var(--text2)}
+.sn{width:20px;height:20px;border-radius:50%;background:rgba(79,127,255,.15);color:var(--accent);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.status-ok{color:var(--green)} .status-err{color:var(--red)}
+
+/* AUTO REFRESH INDICATOR */
+.ar-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--green);background:rgba(62,207,114,.08);padding:3px 10px;border-radius:100px;border:1px solid rgba(62,207,114,.2)}
+.ar-pulse{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* SELECT */
+select{padding:7px 12px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:var(--font);font-size:12px;outline:none;cursor:pointer}
+select:focus{border-color:var(--accent)}
+
+/* ANIMATIONS */
+.sec.active .mc{animation:fu .3s ease both}
+.sec.active .mc:nth-child(2){animation-delay:.05s}
+.sec.active .mc:nth-child(3){animation-delay:.1s}
+.sec.active .mc:nth-child(4){animation-delay:.15s}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+/* INPUT */
+input[type=password],input[type=text]{padding:9px 14px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:var(--mono);font-size:12px;outline:none;transition:border .15s;width:100%}
+input:focus{border-color:var(--accent)}
+input::placeholder{color:var(--text3)}
+
+@media(max-width:900px){
+  .sidebar{display:none}.main{margin-right:0}
+  .cg{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-name">B2B Dashboard</div>
+    <div class="logo-sub">HubSpot CRM</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-sec">CRM</div>
+    <button class="nav-item active" onclick="go('contacts')">
+      <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Contacts
+    </button>
+    <button class="nav-item" onclick="go('companies')">
+      <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="6" width="12" height="9" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5 6V4a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.3"/></svg>
+      Companies
+    </button>
+    <button class="nav-item" onclick="go('deals')">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M13 5l-5 6-3-3-3 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Deals
+    </button>
+    <div class="nav-sec" style="margin-top:.5rem">Reporting</div>
+    <button class="nav-item" onclick="go('activity')">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M2 8h2l2-5 3 9 2-6 1 2h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Activity Leaderboard
+    </button>
+    <button class="nav-item" onclick="go('dealboard')">
+      <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="9" width="3" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="6.5" y="6" width="3" height="8" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="11" y="2" width="3" height="12" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>
+      Deal Leaderboard
+    </button>
+    <button class="nav-item" onclick="go('wonlost')">
+      <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Deals Won / Lost
+    </button>
+    <button class="nav-item" onclick="go('bydate')">
+      <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5 2v2M11 2v2M2 7h12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Deals by Date
+    </button>
+    <div class="nav-sec" style="margin-top:.5rem">System</div>
+    <button class="nav-item" onclick="go('settings')">
+      <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      الإعدادات
+    </button>
+  </nav>
+  <div class="sidebar-foot">
+    <div class="conn-badge">
+      <div class="dot" id="dot"></div>
+      <span id="conn-txt" style="font-size:11px">جاري التحقق...</span>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">Contacts</div>
+    <div class="topbar-right">
+      <div class="ar-badge"><div class="ar-pulse"></div>تحديث تلقائي</div>
+      <select id="qfilter" onchange="refreshCurrent()">
+        <option value="this_quarter">This Quarter</option>
+        <option value="last_quarter">Last Quarter</option>
+        <option value="this_year">This Year</option>
+      </select>
+      <button class="btn btn-p" onclick="refreshCurrent()">↻ تحديث</button>
+      <span class="last-upd" id="last-upd"></span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- CONTACTS -->
+    <div class="sec active" id="sec-contacts">
+      <div class="ph"><h1>Contacts</h1><p>جهات الاتصال من HubSpot CRM</p></div>
+      <div class="mg" id="contacts-m"></div>
+      <div id="contacts-t"><div class="loading"><div class="spin"></div>جاري التحميل...</div></div>
+    </div>
+
+    <!-- COMPANIES -->
+    <div class="sec" id="sec-companies">
+      <div class="ph"><h1>Companies</h1><p>الشركات من HubSpot CRM</p></div>
+      <div class="mg" id="companies-m"></div>
+      <div id="companies-t"><div class="loading"><div class="spin"></div>جاري التحميل...</div></div>
+    </div>
+
+    <!-- DEALS -->
+    <div class="sec" id="sec-deals">
+      <div class="ph"><h1>Deals</h1><p>الصفقات — فلتر Close Date هذا الربع</p></div>
+      <div class="mg" id="deals-m"></div>
+      <div id="deals-t"><div class="loading"><div class="spin"></div>جاري التحميل...</div></div>
+    </div>
+
+    <!-- ACTIVITY -->
+    <div class="sec" id="sec-activity">
+      <div class="ph"><h1>Activity Leaderboard</h1><p>ترتيب المبيعات حسب Meetings مع Type Breakdown</p></div>
+      <div class="mg" id="activity-m"></div>
+      <div class="cg">
+        <div class="cc full">
+          <div class="cc-h"><div class="cc-t">Team Activity Totals — Meetings</div><div class="leg"><span class="li"><span class="ld" style="background:#4f7fff"></span>Meetings</span></div></div>
+          <div style="position:relative;height:220px"><canvas id="actChart" role="img" aria-label="Horizontal bar chart of meetings per rep">Meetings per representative.</canvas></div>
+        </div>
+        <div class="cc full"><div class="cc-h"><div class="cc-t">Leaderboard — by Rep with Type Breakdown</div></div><div id="act-lb"></div></div>
+      </div>
+    </div>
+
+    <!-- DEAL LEADERBOARD -->
+    <div class="sec" id="sec-dealboard">
+      <div class="ph"><h1>Deal Leaderboard</h1><p>Amount Closed by Rep</p></div>
+      <div class="mg" id="dealboard-m"></div>
+      <div class="cg">
+        <div class="cc">
+          <div class="cc-h"><div class="cc-t">Closed Won by Rep</div></div>
+          <div style="position:relative;height:260px"><canvas id="dlbChart" role="img" aria-label="Horizontal bar of closed won by rep">Closed won amounts per rep.</canvas></div>
+        </div>
+        <div class="cc"><div class="cc-h"><div class="cc-t">Leaderboard</div></div><div id="dlb-lb"></div></div>
+      </div>
+    </div>
+
+    <!-- WON / LOST -->
+    <div class="sec" id="sec-wonlost">
+      <div class="ph"><h1>Deals Won / Lost</h1><p>الصفقات المربوحة والخاسرة هذا الربع</p></div>
+      <div class="mg" id="wonlost-m"></div>
+      <div class="cg">
+        <div class="cc">
+          <div class="cc-h"><div class="cc-t">Amount Comparison</div><div class="leg"><span class="li"><span class="ld" style="background:#3ecf72"></span>Won</span><span class="li"><span class="ld" style="background:#ff5c5c"></span>Lost</span></div></div>
+          <div style="position:relative;height:220px"><canvas id="wlAmt" role="img" aria-label="Bar chart won vs lost amounts">Won vs lost amounts.</canvas></div>
+        </div>
+        <div class="cc">
+          <div class="cc-h"><div class="cc-t">Win Rate</div><div class="leg"><span class="li"><span class="ld" style="background:#3ecf72"></span>Won</span><span class="li"><span class="ld" style="background:#ff5c5c;border-style:dashed"></span>Lost</span></div></div>
+          <div style="position:relative;height:220px"><canvas id="wlCnt" role="img" aria-label="Donut chart of win rate">Win rate donut.</canvas></div>
+        </div>
+        <div class="cc full">
+          <div class="cc-h"><div class="cc-t">Won vs Lost — Over Time</div><div class="leg"><span class="li"><span class="ld" style="background:#3ecf72"></span>Won</span><span class="li"><span class="ld" style="background:#ff5c5c"></span>Lost</span></div></div>
+          <div style="position:relative;height:200px"><canvas id="wlTime" role="img" aria-label="Line chart won vs lost over time">Trend over time.</canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BY DATE -->
+    <div class="sec" id="sec-bydate">
+      <div class="ph"><h1>Deal Totals by Create Date</h1><p>Status Breakdown — فلتر Close Date هذا الربع</p></div>
+      <div class="mg" id="bydate-m"></div>
+      <div class="cc" style="margin-bottom:1.5rem">
+        <div class="cc-h"><div class="cc-t">Stacked — Won / Lost / Open by Month</div><div class="leg"><span class="li"><span class="ld" style="background:#3ecf72"></span>Won</span><span class="li"><span class="ld" style="background:#ff5c5c"></span>Lost</span><span class="li"><span class="ld" style="background:#4f7fff"></span>Open</span></div></div>
+        <div style="position:relative;height:260px"><canvas id="bdChart" role="img" aria-label="Stacked bar chart deal status by month">Deal status by month.</canvas></div>
+      </div>
+      <div id="bydate-t"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="sec" id="sec-settings">
+      <div class="ph"><h1>الإعدادات</h1><p>إعداد الاتصال بـ HubSpot</p></div>
+      <div class="sc">
+        <div class="sc-t">حالة الاتصال</div>
+        <div id="conn-detail" class="sc-d">جاري التحقق من الاتصال بـ HubSpot...</div>
+      </div>
+      <div class="sc">
+        <div class="sc-t">كيف يعمل الموقع؟</div>
+        <div class="sc-d">الموقع يسحب البيانات تلقائياً من HubSpot كل <strong>5 دقائق</strong> عبر Vercel Serverless Functions. الـ Token محفوظ في Vercel Environment Variables — لا يظهر في الكود.</div>
+      </div>
+      <div class="sc">
+        <div class="sc-t">Scopes المطلوبة في HubSpot</div>
+        <div class="code">crm.objects.contacts.read
+crm.objects.companies.read
+crm.objects.deals.read
+crm.objects.meetings.read
+crm.objects.owners.read</div>
+      </div>
+    </div>
+
+  </div>
+</main>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────
+const BASE = '';  // فارغ = same origin (Vercel)
+const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 دقائق
+
+// ── STATE ───────────────────────────────────────────
+let current = 'contacts';
+let charts = {};
+let owners = {};
+let refreshTimer = null;
+
+const TITLES = {
+  contacts:'Contacts', companies:'Companies', deals:'Deals',
+  activity:'Activity Leaderboard', dealboard:'Deal Leaderboard',
+  wonlost:'Deals Won / Lost', bydate:'Deals by Date', settings:'الإعدادات'
+};
+
+// ── INIT ────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  await fetchOwners();
+  checkConn();
+  go('contacts');
+  startAutoRefresh();
+});
+
+function startAutoRefresh() {
+  clearInterval(refreshTimer);
+  refreshTimer = setInterval(() => {
+    if (current !== 'settings') loadSection(current);
+  }, REFRESH_INTERVAL);
+}
+
+// ── NAVIGATION ──────────────────────────────────────
+function go(name) {
+  current = name;
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b => {
+    if (b.getAttribute('onclick') === `go('${name}')`) b.classList.add('active');
+  });
+  document.getElementById('topbar-title').textContent = TITLES[name] || name;
+  if (name !== 'settings') loadSection(name);
+}
+
+function refreshCurrent() { if (current !== 'settings') loadSection(current); }
+
+function loadSection(name) {
+  const map = { contacts:loadContacts, companies:loadCompanies, deals:loadDeals, activity:loadActivity, dealboard:loadDealboard, wonlost:loadWonLost, bydate:loadByDate };
+  if (map[name]) map[name]();
+}
+
+// ── QUARTER DATES ────────────────────────────────────
+function getQDates() {
+  const f = document.getElementById('qfilter').value;
+  const now = new Date(), y = now.getFullYear(), q = Math.floor(now.getMonth()/3);
+  const m = {
+    this_quarter:  { s: new Date(y,q*3,1),     e: new Date(y,q*3+3,0) },
+    last_quarter:  { s: new Date(y,(q-1)*3,1), e: new Date(y,q*3,0) },
+    this_year:     { s: new Date(y,0,1),        e: new Date(y,11,31) }
+  };
+  return m[f] || m.this_quarter;
+}
+const fmt = d => d.toISOString().split('T')[0];
+
+// ── API ──────────────────────────────────────────────
+async function api(path) {
+  const r = await fetch(BASE + path);
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+// ── OWNERS ───────────────────────────────────────────
+async function fetchOwners() {
+  try {
+    const d = await api('/api/owners');
+    (d.results || []).forEach(o => { owners[o.id] = ((o.firstName||'') + ' ' + (o.lastName||'')).trim() || 'Rep'+o.id.slice(-4); });
+  } catch(e) {}
+}
+const own = id => owners[id] || ('Rep ' + (id||'?').toString().slice(-4));
+
+// ── CONNECTION CHECK ─────────────────────────────────
+async function checkConn() {
+  try {
+    await api('/api/owners');
+    document.getElementById('dot').className = 'dot on';
+    document.getElementById('conn-txt').textContent = 'متصل بـ HubSpot';
+    document.getElementById('conn-detail').innerHTML = '<span class="status-ok">✓ الاتصال يعمل بشكل صحيح — البيانات تُحدَّث كل 5 دقائق</span>';
+  } catch(e) {
+    document.getElementById('dot').className = 'dot';
+    document.getElementById('conn-txt').textContent = 'خطأ في الاتصال';
+    document.getElementById('conn-detail').innerHTML = '<span class="status-err">✗ تعذر الاتصال — تأكد من إعداد HUBSPOT_TOKEN في Vercel Environment Variables</span>';
+  }
+}
+
+function markUpd() { document.getElementById('last-upd').textContent = 'آخر تحديث ' + new Date().toLocaleTimeString('ar'); }
+
+function kd(n) { return charts[n] ? (charts[n].destroy(), delete charts[n], true) : true; }
+
+function errDiv(msg) { return `<div class="err">⚠ ${msg}</div>`; }
+
+// ── CONTACTS ─────────────────────────────────────────
+async function loadContacts() {
+  document.getElementById('contacts-t').innerHTML = '<div class="loading"><div class="spin"></div>جاري التحميل...</div>';
+  try {
+    const d = await api('/api/contacts');
+    const sm = {customer:'bg',lead:'bb',opportunity:'ba',subscriber:'bt',marketingqualifiedlead:'ba',salesqualifiedlead:'ba'};
+    document.getElementById('contacts-m').innerHTML = `
+      <div class="mc"><div class="mc-l">Total Contacts</div><div class="mc-v a">${(d.total||0).toLocaleString()}</div><div class="mc-glow" style="background:var(--accent)"></div></div>
+      <div class="mc"><div class="mc-l">Loaded</div><div class="mc-v">${(d.results||[]).length}</div></div>`;
+    const rows = (d.results||[]).map(c=>{
+      const p=c.properties, nm=[p.firstname,p.lastname].filter(Boolean).join(' ')||'—';
+      return `<tr><td class="tdn">${nm}</td><td>${p.email||'—'}</td><td>${p.company||'—'}</td><td><span class="b ${sm[p.lifecyclestage]||'bb'}">${p.lifecyclestage||'—'}</span></td><td>${p.createdate?new Date(p.createdate).toLocaleDateString('ar-SA'):'—'}</td></tr>`;
+    }).join('');
+    document.getElementById('contacts-t').innerHTML = `<div class="tc"><div class="th-bar"><span class="th-bar-title">Contacts</span><span class="tc-count">${(d.results||[]).length} سجل</span></div><table><thead><tr><th>الاسم</th><th>البريد</th><th>الشركة</th><th>المرحلة</th><th>تاريخ الإضافة</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="empty">لا توجد بيانات</td></tr>'}</tbody></table></div>`;
+    markUpd();
+  } catch(e) { document.getElementById('contacts-t').innerHTML = errDiv(e.message); }
+}
+
+// ── COMPANIES ────────────────────────────────────────
+async function loadCompanies() {
+  document.getElementById('companies-t').innerHTML = '<div class="loading"><div class="spin"></div>جاري التحميل...</div>';
+  try {
+    const d = await api('/api/companies');
+    document.getElementById('companies-m').innerHTML = `
+      <div class="mc"><div class="mc-l">Total Companies</div><div class="mc-v a">${(d.total||0).toLocaleString()}</div></div>
+      <div class="mc"><div class="mc-l">Loaded</div><div class="mc-v">${(d.results||[]).length}</div></div>`;
+    const rows = (d.results||[]).map(c=>{
+      const p=c.properties;
+      return `<tr><td class="tdn">${p.name||'—'}</td><td>${p.domain||'—'}</td><td>${p.industry||'—'}</td><td>${p.city||'—'}</td><td>${p.numberofemployees?Number(p.numberofemployees).toLocaleString():'—'}</td><td>${p.annualrevenue?'$'+Number(p.annualrevenue).toLocaleString():'—'}</td></tr>`;
+    }).join('');
+    document.getElementById('companies-t').innerHTML = `<div class="tc"><div class="th-bar"><span class="th-bar-title">Companies</span><span class="tc-count">${(d.results||[]).length} شركة</span></div><table><thead><tr><th>الشركة</th><th>الدومين</th><th>القطاع</th><th>المدينة</th><th>الموظفون</th><th>الإيرادات</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="empty">لا توجد بيانات</td></tr>'}</tbody></table></div>`;
+    markUpd();
+  } catch(e) { document.getElementById('companies-t').innerHTML = errDiv(e.message); }
+}
+
+// ── DEALS ────────────────────────────────────────────
+async function loadDeals() {
+  document.getElementById('deals-t').innerHTML = '<div class="loading"><div class="spin"></div>جاري التحميل...</div>';
+  try {
+    const {s,e} = getQDates();
+    const d = await api(`/api/deals?start=${fmt(s)}&end=${fmt(e)}`);
+    let pipe=0,won=0,lost=0,wc=0,lc=0;
+    (d.results||[]).forEach(x=>{
+      const a=parseFloat(x.properties.amount)||0; pipe+=a;
+      if(x.properties.dealstage==='closedwon'){won+=a;wc++;}
+      if(x.properties.dealstage==='closedlost'){lost+=a;lc++;}
+    });
+    document.getElementById('deals-m').innerHTML = `
+      <div class="mc"><div class="mc-l">Total Deals</div><div class="mc-v">${(d.results||[]).length}</div></div>
+      <div class="mc"><div class="mc-l">Pipeline Value</div><div class="mc-v a">$${(pipe/1000).toFixed(0)}K</div></div>
+      <div class="mc"><div class="mc-l">Closed Won</div><div class="mc-v g">$${(won/1000).toFixed(0)}K</div><div class="mc-s">${wc} صفقة</div></div>
+      <div class="mc"><div class="mc-l">Closed Lost</div><div class="mc-v r">$${(lost/1000).toFixed(0)}K</div><div class="mc-s">${lc} صفقة</div></div>
+      <div class="mc"><div class="mc-l">Win Rate</div><div class="mc-v">${wc+lc>0?Math.round(wc/(wc+lc)*100):0}%</div></div>`;
+    const sm={closedwon:'bg',closedlost:'br',appointmentscheduled:'bb',qualifiedtobuy:'ba',contractsent:'ba'};
+    const rows=(d.results||[]).map(x=>{
+      const p=x.properties;
+      return `<tr><td class="tdn">${p.dealname||'—'}</td><td>${p.amount?'$'+Number(p.amount).toLocaleString():'—'}</td><td><span class="b ${sm[p.dealstage]||'bb'}">${p.dealstage||'—'}</span></td><td>${own(p.hubspot_owner_id)}</td><td>${p.closedate?new Date(p.closedate).toLocaleDateString('ar-SA'):'—'}</td></tr>`;
+    }).join('');
+    document.getElementById('deals-t').innerHTML = `<div class="tc"><div class="th-bar"><span class="th-bar-title">Deals</span><span class="tc-count">${(d.results||[]).length} صفقة</span></div><table><thead><tr><th>الصفقة</th><th>القيمة</th><th>المرحلة</th><th>المسؤول</th><th>تاريخ الإغلاق</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="empty">لا توجد بيانات</td></tr>'}</tbody></table></div>`;
+    markUpd();
+  } catch(e) { document.getElementById('deals-t').innerHTML = errDiv(e.message); }
+}
+
+// ── ACTIVITY LEADERBOARD ─────────────────────────────
+async function loadActivity() {
+  document.getElementById('act-lb').innerHTML = '<div class="loading"><div class="spin"></div></div>';
+  try {
+    const {s,e} = getQDates();
+    const d = await api(`/api/meetings?start=${s.getTime()}&end=${e.getTime()}`);
+    const meets = d.results||[];
+    const by = {};
+    meets.forEach(m=>{ const o=m.properties.hubspot_owner_id||'?'; by[o]=(by[o]||0)+1; });
+    const sorted=Object.entries(by).sort((a,b)=>b[1]-a[1]);
+    const maxV=sorted[0]?.[1]||1;
+    document.getElementById('activity-m').innerHTML = `
+      <div class="mc"><div class="mc-l">Total Meetings</div><div class="mc-v a">${meets.length}</div></div>
+      <div class="mc"><div class="mc-l">Active Reps</div><div class="mc-v">${sorted.length}</div></div>
+      <div class="mc"><div class="mc-l">Top Rep</div><div class="mc-v" style="font-size:1rem">${sorted[0]?own(sorted[0][0]):'—'}</div><div class="mc-s">${sorted[0]?.[1]||0} meetings</div></div>`;
+    kd('actChart');
+    const ctx=document.getElementById('actChart');
+    if(ctx&&sorted.length) charts.actChart=new Chart(ctx,{type:'bar',data:{labels:sorted.map(d=>own(d[0])),datasets:[{label:'Meetings',data:sorted.map(d=>d[1]),backgroundColor:'#4f7fff',borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8890a8',stepSize:1},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#e8eaf0',font:{size:12}}}}}});
+    document.getElementById('act-lb').innerHTML = sorted.map(([o,n],i)=>`
+      <div class="lb-row">
+        <div class="lb-rk ${i<3?'top':''}">${i+1}</div>
+        <div class="lb-nm">${own(o)}</div>
+        <span class="b bb">Meetings: ${n}</span>
+        <div class="lb-bw"><div class="lb-bf" style="width:${Math.round(n/maxV*100)}%;background:#4f7fff"></div></div>
+      </div>`).join('')||'<div class="empty">لا توجد بيانات</div>';
+    markUpd();
+  } catch(e) { document.getElementById('act-lb').innerHTML = errDiv(e.message); }
+}
+
+// ── DEAL LEADERBOARD ─────────────────────────────────
+async function loadDealboard() {
+  document.getElementById('dlb-lb').innerHTML = '<div class="loading"><div class="spin"></div></div>';
+  try {
+    const {s,e} = getQDates();
+    const d = await api(`/api/deals?start=${fmt(s)}&end=${fmt(e)}`);
+    const by={};
+    (d.results||[]).filter(x=>x.properties.dealstage==='closedwon').forEach(x=>{
+      const o=x.properties.hubspot_owner_id||'?', a=parseFloat(x.properties.amount)||0;
+      if(!by[o])by[o]={amt:0,cnt:0}; by[o].amt+=a; by[o].cnt++;
+    });
+    const sorted=Object.entries(by).sort((a,b)=>b[1].amt-a[1].amt);
+    const maxA=sorted[0]?.[1]?.amt||1, total=sorted.reduce((s,[,v])=>s+v.amt,0);
+    document.getElementById('dealboard-m').innerHTML = `
+      <div class="mc"><div class="mc-l">Total Closed Won</div><div class="mc-v g">$${(total/1000).toFixed(0)}K</div></div>
+      <div class="mc"><div class="mc-l">Deals Count</div><div class="mc-v">${(d.results||[]).filter(x=>x.properties.dealstage==='closedwon').length}</div></div>
+      <div class="mc"><div class="mc-l">Top Closer</div><div class="mc-v" style="font-size:1rem">${sorted[0]?own(sorted[0][0]):'—'}</div><div class="mc-s">$${sorted[0]?(sorted[0][1].amt/1000).toFixed(0)+'K':'0'}</div></div>`;
+    kd('dlbChart');
+    const ctx=document.getElementById('dlbChart');
+    if(ctx&&sorted.length) charts.dlbChart=new Chart(ctx,{type:'bar',data:{labels:sorted.map(d=>own(d[0])),datasets:[{label:'Closed Won',data:sorted.map(d=>Math.round(d[1].amt)),backgroundColor:'#3ecf72',borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8890a8',callback:v=>'$'+Math.round(v/1000)+'K'},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#e8eaf0',font:{size:12}}}}}});
+    document.getElementById('dlb-lb').innerHTML = sorted.map(([o,v],i)=>`
+      <div class="lb-row">
+        <div class="lb-rk ${i<3?'top':''}">${i+1}</div>
+        <div class="lb-nm">${own(o)}</div>
+        <span style="font-size:13px;color:var(--green);font-weight:500;margin-left:auto">$${(v.amt/1000).toFixed(0)}K</span>
+        <span style="font-size:11px;color:var(--text3)">${v.cnt} deals</span>
+        <div class="lb-bw"><div class="lb-bf" style="width:${Math.round(v.amt/maxA*100)}%;background:#3ecf72"></div></div>
+      </div>`).join('')||'<div class="empty">لا توجد بيانات</div>';
+    markUpd();
+  } catch(e) { document.getElementById('dlb-lb').innerHTML = errDiv(e.message); }
+}
+
+// ── WON / LOST ───────────────────────────────────────
+async function loadWonLost() {
+  try {
+    const {s,e} = getQDates();
+    const d = await api(`/api/deals?start=${fmt(s)}&end=${fmt(e)}`);
+    let wA=0,lA=0,wC=0,lC=0; const bm={};
+    (d.results||[]).forEach(x=>{
+      const p=x.properties, a=parseFloat(p.amount)||0;
+      const mo=p.closedate?p.closedate.slice(0,7):'?';
+      if(!bm[mo])bm[mo]={w:0,l:0};
+      if(p.dealstage==='closedwon'){wA+=a;wC++;bm[mo].w++;}
+      if(p.dealstage==='closedlost'){lA+=a;lC++;bm[mo].l++;}
+    });
+    const wr=wC+lC>0?Math.round(wC/(wC+lC)*100):0;
+    document.getElementById('wonlost-m').innerHTML = `
+      <div class="mc"><div class="mc-l">Closed Won</div><div class="mc-v g">$${(wA/1000).toFixed(0)}K</div><div class="mc-s">${wC} صفقة</div></div>
+      <div class="mc"><div class="mc-l">Closed Lost</div><div class="mc-v r">$${(lA/1000).toFixed(0)}K</div><div class="mc-s">${lC} صفقة</div></div>
+      <div class="mc"><div class="mc-l">Win Rate</div><div class="mc-v">${wr}%</div></div>
+      <div class="mc"><div class="mc-l">Net Value</div><div class="mc-v ${wA>=lA?'g':'r'}">$${((wA-lA)/1000).toFixed(0)}K</div></div>`;
+    kd('wlAmt');kd('wlCnt');kd('wlTime');
+    const c1=document.getElementById('wlAmt');
+    if(c1) charts.wlAmt=new Chart(c1,{type:'bar',data:{labels:['Closed Won','Closed Lost'],datasets:[{data:[Math.round(wA),Math.round(lA)],backgroundColor:['#3ecf72','#ff5c5c'],borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{color:'#8890a8',callback:v=>'$'+Math.round(v/1000)+'K'},grid:{color:'rgba(255,255,255,0.04)'}},x:{ticks:{color:'#e8eaf0'}}}}});
+    const c2=document.getElementById('wlCnt');
+    if(c2) charts.wlCnt=new Chart(c2,{type:'doughnut',data:{labels:['Won','Lost'],datasets:[{data:[wC,lC],backgroundColor:['#3ecf72','#ff5c5c'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false}}}});
+    const mos=Object.keys(bm).sort();
+    const c3=document.getElementById('wlTime');
+    if(c3&&mos.length) charts.wlTime=new Chart(c3,{type:'line',data:{labels:mos,datasets:[{label:'Won',data:mos.map(m=>bm[m].w),borderColor:'#3ecf72',backgroundColor:'rgba(62,207,114,.08)',tension:.3,fill:true,pointRadius:4},{label:'Lost',data:mos.map(m=>bm[m].l),borderColor:'#ff5c5c',backgroundColor:'rgba(255,92,92,.08)',tension:.3,fill:true,borderDash:[4,3],pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{color:'#8890a8',stepSize:1},grid:{color:'rgba(255,255,255,0.04)'}},x:{ticks:{color:'#8890a8'}}}}});
+    markUpd();
+  } catch(e) { document.getElementById('wonlost-m').innerHTML = errDiv(e.message); }
+}
+
+// ── DEALS BY DATE ────────────────────────────────────
+async function loadByDate() {
+  document.getElementById('bydate-t').innerHTML = '<div class="loading"><div class="spin"></div>جاري التحميل...</div>';
+  try {
+    const {s,e} = getQDates();
+    const d = await api(`/api/deals?start=${fmt(s)}&end=${fmt(e)}`);
+    const bm={}; let tw=0,tl=0,to=0;
+    (d.results||[]).forEach(x=>{
+      const p=x.properties, mo=p.createdate?p.createdate.slice(0,7):'?';
+      if(!bm[mo])bm[mo]={w:0,l:0,o:0,wA:0};
+      if(p.dealstage==='closedwon'){bm[mo].w++;bm[mo].wA+=parseFloat(p.amount)||0;tw++;}
+      else if(p.dealstage==='closedlost'){bm[mo].l++;tl++;}
+      else{bm[mo].o++;to++;}
+    });
+    document.getElementById('bydate-m').innerHTML = `
+      <div class="mc"><div class="mc-l">Total Deals</div><div class="mc-v">${(d.results||[]).length}</div></div>
+      <div class="mc"><div class="mc-l">Won</div><div class="mc-v g">${tw}</div></div>
+      <div class="mc"><div class="mc-l">Lost</div><div class="mc-v r">${tl}</div></div>
+      <div class="mc"><div class="mc-l">Open</div><div class="mc-v a">${to}</div></div>`;
+    kd('bdChart');
+    const mos=Object.keys(bm).sort();
+    const ctx=document.getElementById('bdChart');
+    if(ctx&&mos.length) charts.bdChart=new Chart(ctx,{type:'bar',data:{labels:mos,datasets:[{label:'Won',data:mos.map(m=>bm[m].w),backgroundColor:'#3ecf72',borderRadius:3},{label:'Lost',data:mos.map(m=>bm[m].l),backgroundColor:'#ff5c5c',borderRadius:3},{label:'Open',data:mos.map(m=>bm[m].o),backgroundColor:'#4f7fff',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,ticks:{color:'#8890a8',autoSkip:false,maxRotation:45},grid:{color:'rgba(255,255,255,0.04)'}},y:{stacked:true,ticks:{color:'#8890a8',stepSize:1},grid:{color:'rgba(255,255,255,0.04)'}}}}});
+    const trs=mos.map(mo=>`<tr><td class="tdn">${mo}</td><td><span class="b bg">${bm[mo].w}</span></td><td><span class="b br">${bm[mo].l}</span></td><td><span class="b bb">${bm[mo].o}</span></td><td>${bm[mo].w+bm[mo].l+bm[mo].o}</td><td>$${(bm[mo].wA/1000).toFixed(0)}K</td></tr>`).join('');
+    document.getElementById('bydate-t').innerHTML = `<div class="tc"><div class="th-bar"><span class="th-bar-title">Breakdown by Month</span></div><table><thead><tr><th>الشهر</th><th>Won</th><th>Lost</th><th>Open</th><th>المجموع</th><th>قيمة Won</th></tr></thead><tbody>${trs||'<tr><td colspan="6" class="empty">لا توجد بيانات</td></tr>'}</tbody></table></div>`;
+    markUpd();
+  } catch(e) { document.getElementById('bydate-t').innerHTML = errDiv(e.message); }
+}
+</script>
+</body>
+</html>
