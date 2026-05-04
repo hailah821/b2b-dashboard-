@@ -2,9 +2,13 @@
   "name": "b2b-dashboard",
   "version": "1.0.0",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "echo done"
   },
   "dependencies": {
     "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
