@@ -486,7 +486,7 @@ async function loadDeals() {
       <div class="mc"><div class="mc-l">Closed Won</div><div class="mc-v g">$${(won/1000).toFixed(0)}K</div><div class="mc-s">${wc} صفقة</div></div>
       <div class="mc"><div class="mc-l">Closed Lost</div><div class="mc-v r">$${(lost/1000).toFixed(0)}K</div><div class="mc-s">${lc} صفقة</div></div>
       <div class="mc"><div class="mc-l">Win Rate</div><div class="mc-v">${wc+lc>0?Math.round(wc/(wc+lc)*100):0}%</div></div>`;
-    const sm={closedwon:'bg',closedlost:'br',appointmentscheduled:'bb',qualifiedtobuy:'ba',contractsent:'ba'};
+    const sm={closedwon:'bg',closedlost:'br',appointmentscheduled:'bb',qualifiedtobuy:'ba',contractsent:'ba',opportunity:'bt',nurturing:'bt',decisionmakerboughtin:'ba',presentationscheduled:'bb'};
     const rows=(d.results||[]).map(x=>{
       const p=x.properties;
       return `<tr><td class="tdn">${p.dealname||'—'}</td><td>${p.amount?'$'+Number(p.amount).toLocaleString():'—'}</td><td><span class="b ${sm[p.dealstage]||'bb'}">${p.dealstage||'—'}</span></td><td>${own(p.hubspot_owner_id)}</td><td>${p.closedate?new Date(p.closedate).toLocaleDateString('ar-SA'):'—'}</td></tr>`;
