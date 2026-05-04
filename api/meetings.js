@@ -10,36 +10,25 @@ export default async function handler(req, res) {
   const { start, end } = req.query;
 
   try {
-    const r = await fetch('https://api.hubapi.com/engagements/v1/engagements/search?type=MEETING&count=100', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const startDate = start ? new Date(parseInt(start)).toISOString().split('T')[0] : undefined;
+    const endDate = end ? new Date(parseInt(end)).toISOString().split('T')[0] : undefined;
 
-    if (r.ok) {
-      const data = await r.json();
-      const results = (data.results || []).filter(e => {
-        const ts = e.engagement?.timestamp;
-        if (!ts) return true;
-        const startMs = start ? parseInt(start) : 0;
-        const endMs = end ? parseInt(end) : Infinity;
-        return ts >= startMs && ts <= endMs;
-      }).map(e => ({
-        id: e.engagement?.id,
-        properties: {
-          hubspot_owner_id: e.engagement?.ownerId?.toString(),
-          hs_timestamp: e.engagement?.timestamp,
-          hs_meeting_title: e.metadata?.title
-        }
-      }));
-      return res.status(200).json({ results, total: results.length });
-    }
+    const body = {
+      limit: 100,
+      properties: ['hubspot_owner_id', 'hs_timestamp', 'hs_meeting_title', 'hs_activity_type'],
+      filterGroups: startDate && endDate ? [{ filters: [
+        { propertyName: 'hs_lastmodifieddate', operator: 'GTE', value: startDate },
+        { propertyName: 'hs_lastmodifieddate', operator: 'LTE', value: endDate }
+      ]}] : []
+    };
 
-    const r2 = await fetch('https://api.hubapi.com/crm/v3/objects/meetings/search', {
+    const r = await fetch('https://api.hubapi.com/crm/v3/objects/meetings/search', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ limit: 100, properties: ['hubspot_owner_id', 'hs_timestamp', 'hs_meeting_title'], filterGroups: start && end ? [{ filters: [{ propertyName: 'hs_timestamp', operator: 'GTE', value: start }, { propertyName: 'hs_timestamp', operator: 'LTE', value: end }] }] : [] })
+      body: JSON.stringify(body)
     });
-    const data2 = await r2.json();
-    res.status(200).json(data2);
+    const data = await r.json();
+    res.status(200).json(data);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
