@@ -661,35 +661,72 @@ async function loadByDate() {
 }
 
 // ── SALES FUNNEL ─────────────────────────────────────
+// Cache for funnel data
+let _funnelDeals = null;
+let _funnelMeetings = null;
+
 async function loadSalesFunnel() {
   if (!getToken()) return;
   document.getElementById('funnel-content').innerHTML = '<div class="loading"><div class="spin"></div>جاري التحميل...</div>';
   try {
     const {s,e} = getQDates();
-    const d = await api(`/api/funnel?start=${fmt(s)}&end=${fmt(e)}`);
-    const funnels = d.funnels || [];
+    await getOwners();
+
+    // Fetch deals and meetings in parallel (single page each - fast)
+    const [dealData, meetData] = await Promise.all([
+      api(`/api/deals?start=${fmt(s)}&end=${fmt(e)}`),
+      api(`/api/meetings?start=${s.getTime()}&end=${e.getTime()}`)
+    ]);
+
+    const deals = dealData.results || [];
+    const meetings = meetData.results || [];
+
+    // Build funnel per owner
+    const funnels = {};
+    const allOwnerIds = new Set([
+      ...deals.map(d => d.properties.hubspot_owner_id),
+      ...meetings.map(m => m.properties.hubspot_owner_id)
+    ].filter(Boolean));
+
+    allOwnerIds.forEach(id => {
+      funnels[id] = { name: own(id), leads: 0, reachOut: 0, meetings: 0, closeWon: 0, retention: 0 };
+    });
+
+    // Count meetings
+    meetings.forEach(m => {
+      const o = m.properties.hubspot_owner_id;
+      if (o && funnels[o]) funnels[o].meetings++;
+    });
+
+    // Count deals
+    deals.forEach(d => {
+      const o = d.properties.hubspot_owner_id;
+      if (!o || !funnels[o]) return;
+      funnels[o].leads++; // every deal = a lead
+      if (d.properties.dealstage === 'closedwon') funnels[o].closeWon++;
+    });
+
+    const result = Object.values(funnels).filter(f => f.leads > 0 || f.meetings > 0);
     const colors = ['#4f7fff','#e85d9a','#3ecf72','#f5a623','#2dd4bf','#a78bfa','#fb923c'];
 
     document.getElementById('funnel-metrics').innerHTML = `
-      <div class="mc"><div class="mc-l">Sales Reps</div><div class="mc-v">${funnels.length}</div></div>
-      <div class="mc"><div class="mc-l">Total Leads</div><div class="mc-v a">${funnels.reduce((s,f)=>s+f.leads,0).toLocaleString()}</div></div>
-      <div class="mc"><div class="mc-l">Total Meetings</div><div class="mc-v">${funnels.reduce((s,f)=>s+f.meetings,0)}</div></div>
-      <div class="mc"><div class="mc-l">Total Close Won</div><div class="mc-v g">${funnels.reduce((s,f)=>s+f.closeWon,0)}</div></div>
+      <div class="mc"><div class="mc-l">Sales Reps</div><div class="mc-v">${result.length}</div></div>
+      <div class="mc"><div class="mc-l">Total Deals</div><div class="mc-v a">${deals.length}</div></div>
+      <div class="mc"><div class="mc-l">Total Meetings</div><div class="mc-v">${meetings.length}</div></div>
+      <div class="mc"><div class="mc-l">Total Close Won</div><div class="mc-v g">${result.reduce((s,f)=>s+f.closeWon,0)}</div></div>
     `;
 
-    if (!funnels.length) {
+    if (!result.length) {
       document.getElementById('funnel-content').innerHTML = '<div class="empty">لا توجد بيانات</div>';
       return;
     }
 
-    const cards = funnels.map((f, ci) => {
+    const cards = result.map((f, ci) => {
       const color = colors[ci % colors.length];
       const steps = [
-        { label: 'Total Leads', value: f.leads, color: '#4f7fff', sub: 'السنة' },
-        { label: 'Reach Out', value: f.reachOut, color: '#a78bfa', sub: 'السنة' },
-        { label: 'Meetings', value: f.meetings, color: '#f5a623', sub: 'الربع' },
-        { label: 'Close Won', value: f.closeWon, color: '#3ecf72', sub: 'الربع' },
-        { label: 'Retention', value: f.retention, color: '#2dd4bf', sub: 'الربع' }
+        { label: 'Total Deals', value: f.leads, color: '#4f7fff' },
+        { label: 'Meetings', value: f.meetings, color: '#f5a623' },
+        { label: 'Close Won', value: f.closeWon, color: '#3ecf72' }
       ];
       const maxVal = Math.max(...steps.map(s => s.value), 1);
       const stepsHTML = steps.map((step, i) => {
@@ -698,7 +735,7 @@ async function loadSalesFunnel() {
         return `
           ${i > 0 ? '<div class="funnel-connector"></div>' : ''}
           <div class="funnel-step">
-            <div class="funnel-label">${step.label}<br><span style="font-size:9px;color:var(--text3)">${step.sub}</span></div>
+            <div class="funnel-label">${step.label}</div>
             <div class="funnel-bar-outer">
               <div class="funnel-bar-inner" style="width:${Math.max(pct,8)}%;background:${step.color}">${step.value}</div>
             </div>
