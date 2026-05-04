@@ -666,8 +666,29 @@ async function loadSalesFunnel() {
   document.getElementById('funnel-content').innerHTML = '<div class="loading"><div class="spin"></div>جاري التحميل...</div>';
   try {
     const {s,e} = getQDates();
-    const d = await api(`/api/funnel?start=${fmt(s)}&end=${fmt(e)}`);
-    const funnels = d.funnels || [];
+    const qs = fmt(s), qe = fmt(e);
+
+    // Fetch all 3 types in parallel
+    const [leadsData, meetData, dealData] = await Promise.all([
+      api(`/api/funnel?start=${qs}&end=${qe}&type=leads`),
+      api(`/api/funnel?start=${qs}&end=${qe}&type=meetings`),
+      api(`/api/funnel?start=${qs}&end=${qe}&type=deals`)
+    ]);
+
+    // Merge results by owner name
+    const merged = {};
+    const mergeIn = (d) => {
+      (d.funnels||[]).forEach(f => {
+        if (!merged[f.name]) merged[f.name] = { name: f.name, leads:0, reachOut:0, meetings:0, closeWon:0, retention:0 };
+        merged[f.name].leads += f.leads||0;
+        merged[f.name].reachOut += f.reachOut||0;
+        merged[f.name].meetings += f.meetings||0;
+        merged[f.name].closeWon += f.closeWon||0;
+        merged[f.name].retention += f.retention||0;
+      });
+    };
+    mergeIn(leadsData); mergeIn(meetData); mergeIn(dealData);
+    const funnels = Object.values(merged).filter(f => f.leads>0||f.meetings>0||f.closeWon>0);
 
     const colors = ['#4f7fff','#e85d9a','#3ecf72','#f5a623','#2dd4bf','#a78bfa','#fb923c'];
 
@@ -686,25 +707,25 @@ async function loadSalesFunnel() {
     const cards = funnels.map((f, ci) => {
       const color = colors[ci % colors.length];
       const steps = [
-        { label: 'Total Leads', value: f.leads, color: '#4f7fff' },
-        { label: 'Reach Out', value: f.reachOut, color: '#a78bfa' },
-        { label: 'Meetings', value: f.meetings, color: '#f5a623' },
-        { label: 'Close Won', value: f.closeWon, color: '#3ecf72' },
-        { label: 'Retention', value: f.retention, color: '#2dd4bf' }
+        { label: 'Total Leads', value: f.leads, color: '#4f7fff', sub: 'السنة' },
+        { label: 'Reach Out', value: f.reachOut, color: '#a78bfa', sub: 'السنة' },
+        { label: 'Meetings', value: f.meetings, color: '#f5a623', sub: 'الربع' },
+        { label: 'Close Won', value: f.closeWon, color: '#3ecf72', sub: 'الربع' },
+        { label: 'Retention', value: f.retention, color: '#2dd4bf', sub: 'الربع' }
       ];
       const maxVal = Math.max(...steps.map(s => s.value), 1);
 
       const stepsHTML = steps.map((step, i) => {
         const pct = Math.round(step.value / maxVal * 100);
-        const convPct = i === 0 ? 100 : (steps[i-1].value > 0 ? Math.round(step.value/steps[i-1].value*100) : 0);
+        const convPct = i === 0 ? '' : (steps[i-1].value > 0 ? Math.round(step.value/steps[i-1].value*100)+'%' : '0%');
         return `
           ${i > 0 ? '<div class="funnel-connector"></div>' : ''}
           <div class="funnel-step">
-            <div class="funnel-label">${step.label}</div>
+            <div class="funnel-label">${step.label}<br><span style="font-size:9px;color:var(--text3)">${step.sub}</span></div>
             <div class="funnel-bar-outer">
-              <div class="funnel-bar-inner" style="width:${pct}%;background:${step.color}">${step.value}</div>
+              <div class="funnel-bar-inner" style="width:${Math.max(pct,8)}%;background:${step.color}">${step.value}</div>
             </div>
-            <div class="funnel-pct">${i===0?'':'→'+convPct+'%'}</div>
+            <div class="funnel-pct">${convPct}</div>
           </div>`;
       }).join('');
 

@@ -7,42 +7,28 @@ export default async function handler(req, res) {
   const token = process.env.HUBSPOT_TOKEN;
   if (!token) return res.status(500).json({ error: 'HUBSPOT_TOKEN not set' });
 
-  const { start, end } = req.query; // This quarter dates
+  const { start, end, type } = req.query;
 
   try {
-    // Calculate dates
     const qStart = start;
     const qEnd = end;
     const yearStart = new Date(new Date(start).getFullYear(), 0, 1).toISOString().split('T')[0];
     const yearEnd = new Date(new Date(start).getFullYear(), 11, 31).toISOString().split('T')[0];
-
-    // Last quarter dates
     const qStartDate = new Date(start);
-    const lqEnd = new Date(qStartDate.getTime() - 1);
-    const lqStart = new Date(qStartDate.getFullYear(), qStartDate.getMonth() - 3, 1);
-    const lqStartStr = lqStart.toISOString().split('T')[0];
-    const lqEndStr = lqEnd.toISOString().split('T')[0];
+    const lqStart = new Date(qStartDate.getFullYear(), qStartDate.getMonth() - 3, 1).toISOString().split('T')[0];
+    const lqEnd = new Date(qStartDate.getTime() - 86400000).toISOString().split('T')[0];
 
-    // Helper: fetch all pages
-    async function fetchAll(url, body) {
-      let all = [], after;
-      while (true) {
-        const b = { ...body, ...(after ? { after } : {}) };
-        const r = await fetch(url, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify(b)
-        });
-        if (!r.ok) break;
-        const d = await r.json();
-        all = all.concat(d.results || []);
-        if (d.paging?.next?.after && all.length < 2000) after = d.paging.next.after;
-        else break;
-      }
-      return all;
+    async function fetchPage(url, body) {
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!r.ok) return { results: [], total: 0 };
+      return r.json();
     }
 
-    // Get owners
+    // Owners
     const ownersRes = await fetch('https://api.hubapi.com/crm/v3/owners?limit=100', {
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -52,107 +38,88 @@ export default async function handler(req, res) {
       owners[o.id] = ((o.firstName||'') + ' ' + (o.lastName||'')).trim() || 'Rep'+o.id.slice(-4);
     });
 
-    // 1. LEADS — full year
-    const allContacts = await fetchAll('https://api.hubapi.com/crm/v3/objects/contacts/search', {
-      limit: 100,
-      properties: ['hubspot_owner_id', 'createdate'],
-      filterGroups: [{ filters: [
-        { propertyName: 'createdate', operator: 'GTE', value: yearStart },
-        { propertyName: 'createdate', operator: 'LTE', value: yearEnd }
-      ]}]
-    });
-
-    // 2. REACH OUT (Notes) — full year
-    const allNotes = await fetchAll('https://api.hubapi.com/crm/v3/objects/notes/search', {
-      limit: 100,
-      properties: ['hubspot_owner_id', 'hs_timestamp'],
-      filterGroups: [{ filters: [
-        { propertyName: 'hs_timestamp', operator: 'GTE', value: new Date(yearStart).getTime().toString() },
-        { propertyName: 'hs_timestamp', operator: 'LTE', value: new Date(yearEnd + 'T23:59:59').getTime().toString() }
-      ]}]
-    });
-
-    // 3. MEETINGS — this quarter
-    const allMeetings = await fetchAll('https://api.hubapi.com/crm/v3/objects/meetings/search', {
-      limit: 100,
-      properties: ['hubspot_owner_id', 'hs_timestamp'],
-      filterGroups: [{ filters: [
-        { propertyName: 'hs_timestamp', operator: 'GTE', value: new Date(qStart).getTime().toString() },
-        { propertyName: 'hs_timestamp', operator: 'LTE', value: new Date(qEnd + 'T23:59:59').getTime().toString() }
-      ]}]
-    });
-
-    // 4. CLOSE WON — this quarter
-    const allDealsQ = await fetchAll('https://api.hubapi.com/crm/v3/objects/deals/search', {
-      limit: 100,
-      properties: ['hubspot_owner_id', 'dealstage', 'closedate', 'amount', 'associations'],
-      filterGroups: [{ filters: [
-        { propertyName: 'closedate', operator: 'GTE', value: qStart },
-        { propertyName: 'closedate', operator: 'LTE', value: qEnd }
-      ]}]
-    });
-
-    // 5. RETENTION — companies/deals from last quarter that returned this quarter
-    const dealsLastQ = await fetchAll('https://api.hubapi.com/crm/v3/objects/deals/search', {
-      limit: 100,
-      properties: ['hubspot_owner_id', 'dealstage', 'closedate'],
-      filterGroups: [{ filters: [
-        { propertyName: 'closedate', operator: 'GTE', value: lqStartStr },
-        { propertyName: 'closedate', operator: 'LTE', value: lqEndStr },
-        { propertyName: 'dealstage', operator: 'EQ', value: 'closedwon' }
-      ]}]
-    });
-
-    const dealsThisQ = await fetchAll('https://api.hubapi.com/crm/v3/objects/deals/search', {
-      limit: 100,
-      properties: ['hubspot_owner_id', 'dealstage', 'closedate'],
-      filterGroups: [{ filters: [
-        { propertyName: 'closedate', operator: 'GTE', value: qStart },
-        { propertyName: 'closedate', operator: 'LTE', value: qEnd }
-      ]}]
-    });
-
-    // Build owner sets for retention
-    const lastQOwners = new Set(dealsLastQ.map(d => d.properties.hubspot_owner_id).filter(Boolean));
-    const thisQOwners = new Set(dealsThisQ.map(d => d.properties.hubspot_owner_id).filter(Boolean));
-
-    // Build funnels
     const funnels = {};
     Object.entries(owners).forEach(([id, name]) => {
       funnels[id] = { name, leads: 0, reachOut: 0, meetings: 0, closeWon: 0, retention: 0 };
     });
 
-    allContacts.forEach(c => {
-      const o = c.properties.hubspot_owner_id;
-      if (o && funnels[o]) funnels[o].leads++;
-    });
+    if (type === 'leads') {
+      // Leads this year - just first page
+      const d = await fetchPage('https://api.hubapi.com/crm/v3/objects/contacts/search', {
+        limit: 100,
+        properties: ['hubspot_owner_id'],
+        filterGroups: [{ filters: [
+          { propertyName: 'createdate', operator: 'GTE', value: yearStart },
+          { propertyName: 'createdate', operator: 'LTE', value: yearEnd }
+        ]}]
+      });
+      (d.results||[]).forEach(c => {
+        const o = c.properties.hubspot_owner_id;
+        if (o && funnels[o]) funnels[o].leads++;
+      });
+    }
 
-    allNotes.forEach(n => {
-      const o = n.properties.hubspot_owner_id;
-      if (o && funnels[o]) funnels[o].reachOut++;
-    });
+    if (type === 'meetings') {
+      // Meetings this quarter
+      const d = await fetchPage('https://api.hubapi.com/crm/v3/objects/meetings/search', {
+        limit: 100,
+        properties: ['hubspot_owner_id'],
+        filterGroups: [{ filters: [
+          { propertyName: 'hs_timestamp', operator: 'GTE', value: new Date(qStart).getTime().toString() },
+          { propertyName: 'hs_timestamp', operator: 'LTE', value: new Date(qEnd+'T23:59:59').getTime().toString() }
+        ]}]
+      });
+      (d.results||[]).forEach(m => {
+        const o = m.properties.hubspot_owner_id;
+        if (o && funnels[o]) funnels[o].meetings++;
+      });
+    }
 
-    allMeetings.forEach(m => {
-      const o = m.properties.hubspot_owner_id;
-      if (o && funnels[o]) funnels[o].meetings++;
-    });
+    if (type === 'deals') {
+      // Close won this quarter
+      const d = await fetchPage('https://api.hubapi.com/crm/v3/objects/deals/search', {
+        limit: 100,
+        properties: ['hubspot_owner_id','dealstage'],
+        filterGroups: [{ filters: [
+          { propertyName: 'closedate', operator: 'GTE', value: qStart },
+          { propertyName: 'closedate', operator: 'LTE', value: qEnd }
+        ]}]
+      });
+      (d.results||[]).forEach(d => {
+        const o = d.properties.hubspot_owner_id;
+        if (o && funnels[o] && d.properties.dealstage === 'closedwon') funnels[o].closeWon++;
+      });
 
-    allDealsQ.forEach(d => {
-      const o = d.properties.hubspot_owner_id;
-      if (!o || !funnels[o]) return;
-      if (d.properties.dealstage === 'closedwon') funnels[o].closeWon++;
-    });
+      // Retention
+      const lqD = await fetchPage('https://api.hubapi.com/crm/v3/objects/deals/search', {
+        limit: 100,
+        properties: ['hubspot_owner_id'],
+        filterGroups: [{ filters: [
+          { propertyName: 'closedate', operator: 'GTE', value: lqStart },
+          { propertyName: 'closedate', operator: 'LTE', value: lqEnd },
+          { propertyName: 'dealstage', operator: 'EQ', value: 'closedwon' }
+        ]}]
+      });
+      const lqOwners = new Set((lqD.results||[]).map(x => x.properties.hubspot_owner_id).filter(Boolean));
+      const thisQD = await fetchPage('https://api.hubapi.com/crm/v3/objects/deals/search', {
+        limit: 100,
+        properties: ['hubspot_owner_id'],
+        filterGroups: [{ filters: [
+          { propertyName: 'closedate', operator: 'GTE', value: qStart },
+          { propertyName: 'closedate', operator: 'LTE', value: qEnd }
+        ]}]
+      });
+      const thisQOwners = new Set((thisQD.results||[]).map(x => x.properties.hubspot_owner_id).filter(Boolean));
+      Object.keys(funnels).forEach(o => {
+        if (lqOwners.has(o) && thisQOwners.has(o)) funnels[o].retention = 1;
+      });
+    }
 
-    // Retention = owners who had closedwon last quarter AND have deals this quarter
-    Object.keys(funnels).forEach(o => {
-      if (lastQOwners.has(o) && thisQOwners.has(o)) funnels[o].retention++;
-    });
-
-    const result = Object.values(funnels).filter(f => 
+    const result = Object.values(funnels).filter(f =>
       f.leads > 0 || f.meetings > 0 || f.closeWon > 0 || f.reachOut > 0
     );
 
-    res.status(200).json({ funnels: result });
+    res.status(200).json({ funnels: result, owners });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
