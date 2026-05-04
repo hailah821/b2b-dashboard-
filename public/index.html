@@ -351,7 +351,7 @@ const TITLES = {
 
 // ── INIT ────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
-  await fetchOwners();
+  await Promise.all([fetchOwners(), fetchStages()]);
   checkConn();
   go('contacts');
   startAutoRefresh();
@@ -412,6 +412,26 @@ async function fetchOwners() {
   } catch(e) {}
 }
 const own = id => owners[id] || ('Rep ' + (id||'?').toString().slice(-4));
+// ── STAGES ───────────────────────────────────────────
+let stageMap = {};
+async function fetchStages() {
+  try {
+    const d = await api('/api/stages');
+    stageMap = d.stageMap || {};
+  } catch(e) {}
+}
+function stageName(id) { return stageMap[id] || id || '—'; }
+function stageBadge(id) {
+  if (id === 'closedwon') return 'bg';
+  if (id === 'closedlost') return 'br';
+  const n = (stageMap[id] || id || '').toLowerCase();
+  if (n.includes('won')) return 'bg';
+  if (n.includes('lost')) return 'br';
+  if (n.includes('contract') || n.includes('decision') || n.includes('qualified')) return 'ba';
+  if (n.includes('nurtur') || n.includes('opportun')) return 'bt';
+  return 'bb';
+}
+
 
 // ── CONNECTION CHECK ─────────────────────────────────
 async function checkConn() {
@@ -486,10 +506,10 @@ async function loadDeals() {
       <div class="mc"><div class="mc-l">Closed Won</div><div class="mc-v g">$${(won/1000).toFixed(0)}K</div><div class="mc-s">${wc} صفقة</div></div>
       <div class="mc"><div class="mc-l">Closed Lost</div><div class="mc-v r">$${(lost/1000).toFixed(0)}K</div><div class="mc-s">${lc} صفقة</div></div>
       <div class="mc"><div class="mc-l">Win Rate</div><div class="mc-v">${wc+lc>0?Math.round(wc/(wc+lc)*100):0}%</div></div>`;
-    const sm={closedwon:'bg',closedlost:'br',appointmentscheduled:'bb',qualifiedtobuy:'ba',contractsent:'ba',opportunity:'bt',nurturing:'bt',decisionmakerboughtin:'ba',presentationscheduled:'bb'};
+    const sm={closedwon:'bg',closedlost:'br',appointmentscheduled:'bb',qualifiedtobuy:'ba',contractsent:'ba',opportunity:'bt',nurturing:'bt',decisionmakerboughtin:'ba',presentationscheduled:'bb','2738813164':'bb'};
     const rows=(d.results||[]).map(x=>{
       const p=x.properties;
-      return `<tr><td class="tdn">${p.dealname||'—'}</td><td>${p.amount?'$'+Number(p.amount).toLocaleString():'—'}</td><td><span class="b ${sm[p.dealstage]||'bb'}">${p.dealstage||'—'}</span></td><td>${own(p.hubspot_owner_id)}</td><td>${p.closedate?new Date(p.closedate).toLocaleDateString('ar-SA'):'—'}</td></tr>`;
+      return `<tr><td class="tdn">${p.dealname||'—'}</td><td>${p.amount?'$'+Number(p.amount).toLocaleString():'—'}</td><td><span class="b ${sm[p.dealstage]||'bb'}">${stageName(p.dealstage)}</span></td><td>${own(p.hubspot_owner_id)}</td><td>${p.closedate?new Date(p.closedate).toLocaleDateString('ar-SA'):'—'}</td></tr>`;
     }).join('');
     document.getElementById('deals-t').innerHTML = `<div class="tc"><div class="th-bar"><span class="th-bar-title">Deals</span><span class="tc-count">${(d.results||[]).length} صفقة</span></div><table><thead><tr><th>الصفقة</th><th>القيمة</th><th>المرحلة</th><th>المسؤول</th><th>تاريخ الإغلاق</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="empty">لا توجد بيانات</td></tr>'}</tbody></table></div>`;
     markUpd();
