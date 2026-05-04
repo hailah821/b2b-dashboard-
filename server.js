@@ -5,6 +5,7 @@ const PORT = process.env.PORT || 3000;
 const TOKEN = process.env.HUBSPOT_TOKEN;
 
 app.use(express.json());
+app.use((req,res,next)=>{res.setHeader("Access-Control-Allow-Origin","*");res.setHeader("Access-Control-Allow-Methods","GET,POST,OPTIONS");res.setHeader("Access-Control-Allow-Headers","Content-Type");if(req.method==="OPTIONS")return res.status(200).end();next();});
 app.use(express.static(path.join(__dirname, 'public')));
 
 async function hs(url, body) {
