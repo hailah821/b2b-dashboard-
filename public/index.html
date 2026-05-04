@@ -324,6 +324,25 @@ input::placeholder{color:var(--text3)}
       <div class="ph"><h1>Deals</h1><p>الصفقات — فلتر Close Date هذا الربع</p></div>
       <div class="mg" id="deals-m"></div>
       <div id="deals-t"><div class="loading"><div class="spin"></div>جاري التحميل...</div></div>
+
+      <!-- DEAL AVERAGE -->
+      <div style="margin-top:2rem">
+        <div class="ph" style="margin-bottom:1rem">
+          <h1 style="font-size:1.1rem">Deal Average — This Quarter</h1>
+          <p>قيمة كل صفقة وحالتها هذا الربع</p>
+        </div>
+        <div class="cc" style="margin-bottom:1.5rem">
+          <div class="cc-h">
+            <div class="cc-t">Deals by Amount</div>
+            <div class="leg">
+              <span class="li"><span class="ld" style="background:#3ecf72"></span>Closed Won</span>
+              <span class="li"><span class="ld" style="background:#ff5c5c"></span>Closed Lost</span>
+              <span class="li"><span class="ld" style="background:#4f7fff"></span>Open</span>
+            </div>
+          </div>
+          <div style="position:relative;height:400px"><canvas id="dealAvgChart" role="img" aria-label="Bar chart of deals by amount">Deal amounts chart.</canvas></div>
+        </div>
+      </div>
     </div>
 
     <!-- ACTIVITY -->
@@ -615,6 +634,7 @@ async function loadDeals() {
     }).join('');
     document.getElementById('deals-t').innerHTML = `<div class="tc"><div class="th-bar"><span class="th-bar-title">Deals</span><span class="tc-count">${(d.total||d.results?.length||0).toLocaleString()} صفقة</span></div><table><thead><tr><th>الصفقة</th><th>القيمة</th><th>المرحلة</th><th>المسؤول</th><th>تاريخ الإغلاق</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="empty">لا توجد بيانات</td></tr>'}</tbody></table></div>`;
     markUpd();
+    setTimeout(() => loadDealAverage(), 300);
   } catch(e) { document.getElementById('deals-t').innerHTML = errDiv(e.message); }
 }
 
@@ -879,6 +899,66 @@ async function loadDealDist() {
     const el = document.getElementById('dealdist-metrics');
     if (el) el.innerHTML = '<div class="err">⚠ ' + e.message + '</div>';
   }
+}
+
+// ── DEAL AVERAGE ─────────────────────────────────────
+async function loadDealAverage() {
+  if (!getToken()) return;
+  try {
+    const {s,e} = getQDates();
+    const d = await cachedApi(`/api/deals?start=${fmt(s)}&end=${fmt(e)}`);
+    const deals = (d.results||[]).filter(x => parseFloat(x.properties.amount) > 0);
+    if (!deals.length) return;
+
+    const stageColor = {
+      closedwon: '#3ecf72',
+      closedlost: '#ff5c5c'
+    };
+
+    const sorted = [...deals].sort((a,b) => (parseFloat(b.properties.amount)||0) - (parseFloat(a.properties.amount)||0)).slice(0, 20);
+    const labels = sorted.map(d => (d.properties.dealname||'').slice(0, 25));
+    const data = sorted.map(d => parseFloat(d.properties.amount)||0);
+    const colors = sorted.map(d => stageColor[d.properties.dealstage] || '#4f7fff');
+
+    kd('dealAvgChart');
+    const ctx = document.getElementById('dealAvgChart');
+    if (!ctx) return;
+    charts.dealAvgChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor: colors,
+          borderRadius: 4,
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: c => `$${Number(c.raw).toLocaleString()}`,
+              afterLabel: c => sorted[c.dataIndex].properties.dealstage || ''
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#8890a8', font: { size: 10 }, maxRotation: 45 },
+            grid: { color: 'rgba(255,255,255,0.04)' }
+          },
+          y: {
+            ticks: { color: '#8890a8', callback: v => '$' + Math.round(v/1000) + 'K' },
+            grid: { color: 'rgba(255,255,255,0.04)' }
+          }
+        }
+      }
+    });
+  } catch(e) {}
 }
 </script>
 </body>
