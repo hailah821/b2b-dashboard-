@@ -909,7 +909,7 @@ async function loadMarketing() {
   try {
     const IG_TOKEN = 'EAAN9IgLZCCysBRW0MKWREq31SKx0Rd7uPGXFYhUsGKgMK98qqIdvZAyLSFbMarIQjeFc2s8G3VqPthi8Q71C1aP7dw4tTTzl5RvmRVOSd1g9VbYTFKnvqNshcZBK8M0Xh2GFULKkVJMqEBq24RWOhtFT7tRzPZBglMsonIxuyKASyZBVnBSI6k46EzSFF19prqYcDDRww8bPzXHVaavnzgVZBm6tKtTJAW1bD0JVOoZAe4p9OoOvlac27FZB7FkZBVOZAk9NP1yENaz8vWWdxu93FK3ZAxT';
     const IG_ID = '109623034903639';
-    const r = await fetch('https://graph.facebook.com/v25.0/' + IG_ID + '?fields=followers_count,follows_count,media_count,name,biography,website&access_token=' + IG_TOKEN);
+    const r = await fetch('https://graph.facebook.com/v25.0/' + IG_ID + '?fields=followers_count,media_count,name,biography&access_token=' + IG_TOKEN);
     const d = await r.json();
     if (d.error) throw new Error(d.error.message);
     if (mEl) mEl.innerHTML = `
