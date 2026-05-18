@@ -907,7 +907,7 @@ async function loadMarketing() {
   const mEl = document.getElementById('marketing-metrics');
   if (mEl) mEl.innerHTML = '<div class="loading"><div class="spin"></div></div>';
   try {
-    const IG_TOKEN = 'EAAN9IgLZCCysBRW0MKWREq31SKx0Rd7uPGXFYhUsGKgMK98qqIdvZAyLSFbMarIQjeFc2s8G3VqPthi8Q71C1aP7dw4tTTzl5RvmRVOSd1g9VbYTFKnvqNshcZBK8M0Xh2GFULKkVJMqEBq24RWOhtFT7tRzPZBglMsonIxuyKASyZBVnBSI6k46EzSFF19prqYcDDRww8bPzXHVaavnzgVZBm6tKtTJAW1bD0JVOoZAe4p9OoOvlac27FZB7FkZBVOZAk9NP1yENaz8vWWdxu93FK3ZAxT';
+    const IG_TOKEN = 'EAAN9IgLZCCysBReAK7ATNJ6h7js4delOheei2mvsWBpATjOo0Rp79ZBUPZByC33GYwWjuzrAm3F1QLksjNtAZCW2ZAORPlwch0p3zIaTjIoNBsHm4fcM0tTsdqnfY1LDKobOykMkxiqigmi43NnKTJn32ZAEFMafUgRICI4hqzxNdZCJW8H1MqZAjFPH1aUED9kj';
     const IG_ID = '109623034903639';
     const r = await fetch('https://graph.facebook.com/v25.0/' + IG_ID + '?fields=followers_count,name&access_token=' + IG_TOKEN);
     const d = await r.json();
