@@ -397,7 +397,7 @@ input::placeholder{color:var(--text3)}
 
     <!-- MARKETING -->
     <div class="sec" id="sec-marketing">
-      <div class="ph"><h1>Marketing</h1><p>Facebook Analytics — Ygii</p></div>
+      <div class="ph"><h1>Marketing</h1><p>Instagram Analytics — Ygii</p></div>
       <div class="mg" id="marketing-metrics"></div>
       <div class="cg">
         <div class="cc">
@@ -913,7 +913,7 @@ async function loadMarketing() {
       <div class="mc"><div class="mc-l">Followers</div><div class="mc-v a">${(d.followers_count||0).toLocaleString()}</div></div>
     `;
     const followEl = document.getElementById('ig-followers');
-    if (followEl) followEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:160px;flex-direction:column;gap:12px"><div style="font-size:3.5rem;font-weight:700;color:var(--accent)">' + (d.followers_count||0).toLocaleString() + '</div><div style="font-size:13px;color:var(--text2)">متابع على Facebook</div></div>';
+    if (followEl) followEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:160px;flex-direction:column;gap:12px"><div style="font-size:3.5rem;font-weight:700;color:var(--accent)">' + (d.followers_count||0).toLocaleString() + '</div><div style="font-size:13px;color:var(--text2)">متابع على Instagram</div></div>';
     const infoEl = document.getElementById('ig-info');
     if (infoEl) infoEl.innerHTML = '<div style="display:flex;flex-direction:column;gap:10px;padding:.5rem 0"><div style="font-size:16px;font-weight:600;color:var(--text)">@' + (d.name||'ygiiapp') + '</div>' + (d.biography?'<div style="font-size:13px;color:var(--text2);line-height:1.7">' + d.biography + '</div>':'') + '</div>';
     markUpd();
