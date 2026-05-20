@@ -311,15 +311,15 @@ input::placeholder{color:var(--text3)}
     <div class="sec" id="sec-settings">
       <div class="ph"><h1>Settings</h1><p>HubSpot Connection Setup</p></div>
       <div class="sc">
-        <div class="sc-t">حالة الاتصال</div>
-        <div id="conn-detail" class="sc-d">جاري التحقق من الاتصال بـ HubSpot...</div>
+        <div class="sc-t">حالة الاتAMال</div>
+        <div id="conn-detail" class="sc-d">جاري التحقق PMن الاتAMال بـ HubSpot...</div>
       </div>
       <div class="sc">
-        <div class="sc-t">كيف يعمل الموقع؟</div>
-        <div class="sc-d">الموقع يسحب البيانات تلقائياً من HubSpot كل <strong>5 دقائق</strong> عبر Vercel Serverless Functions. الـ Token محفوظ في Vercel Environment Variables — لا يظهر في الكود.</div>
+        <div class="sc-t">كيف يعPMل الPMوقع؟</div>
+        <div class="sc-d">الPMوقع يسحب البيانات تلقائياً PMن HubSpot كل <strong>5 دقائق</strong> عبر Vercel Serverless Functions. الـ Token PMحفوظ في Vercel Environment Variables — لا يظهر في الكود.</div>
       </div>
       <div class="sc">
-        <div class="sc-t">Scopes المطلوبة في HubSpot</div>
+        <div class="sc-t">Scopes الPMطلوبة في HubSpot</div>
         <div class="code">crm.objects.contacts.read
 crm.objects.companies.read
 crm.objects.deals.read
@@ -419,11 +419,11 @@ async function checkConn() {
     await api('/api/owners');
     document.getElementById('dot').className = 'dot on';
     document.getElementById('conn-txt').textContent = 'Connected to HubSpot';
-    document.getElementById('conn-detail').innerHTML = '<span class="status-ok">✓ الاتصال يعمل بشكل صحيح — البيانات تُحدَّث كل 5 دقائق</span>';
+    document.getElementById('conn-detail').innerHTML = '<span class="status-ok">✓ الاتAMال يعPMل بشكل AMحيح — البيانات تُحدَّث كل 5 دقائق</span>';
   } catch(e) {
     document.getElementById('dot').className = 'dot';
-    document.getElementById('conn-txt').textContent = 'خطأ في الاتصال';
-    document.getElementById('conn-detail').innerHTML = '<span class="status-err">✗ تعذر الاتصال — تأكد من إعداد HUBSPOT_TOKEN في Vercel Environment Variables</span>';
+    document.getElementById('conn-txt').textContent = 'خطأ في الاتAMال';
+    document.getElementById('conn-detail').innerHTML = '<span class="status-err">✗ تعذر الاتAMال — تأكد PMن إعداد HUBSPOT_TOKEN في Vercel Environment Variables</span>';
   }
 }
 
@@ -463,7 +463,7 @@ async function loadCompanies() {
       const p=c.properties;
       return `<tr><td class="tdn">${p.name||'—'}</td><td>${p.domain||'—'}</td><td>${p.industry||'—'}</td><td>${p.city||'—'}</td><td>${p.numberofemployees?Number(p.numberofemployees).toLocaleString():'—'}</td><td>${p.annualrevenue?'$'+Number(p.annualrevenue).toLocaleString():'—'}</td></tr>`;
     }).join('');
-    document.getElementById('companies-t').innerHTML = `<div class="tc"><div class="th-bar"><span class="th-bar-title">Companies</span><span class="tc-count">${(d.results||[]).length} شركة</span></div><table><thead><tr><th>Company</th><th>الدومين</th><th>القطاع</th><th>المدينة</th><th>الموظفون</th><th>الإيرادات</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="empty">No data</td></tr>'}</tbody></table></div>`;
+    document.getElementById('companies-t').innerHTML = `<div class="tc"><div class="th-bar"><span class="th-bar-title">Companies</span><span class="tc-count">${(d.results||[]).length} شركة</span></div><table><thead><tr><th>Company</th><th>الدوPMين</th><th>القطاع</th><th>الPMدينة</th><th>الPMوظفون</th><th>الإيرادات</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="empty">No data</td></tr>'}</tbody></table></div>`;
     markUpd();
   } catch(e) { document.getElementById('companies-t').innerHTML = errDiv(e.message); }
 }
@@ -612,7 +612,7 @@ async function loadByDate() {
     const ctx=document.getElementById('bdChart');
     if(ctx&&mos.length) charts.bdChart=new Chart(ctx,{type:'bar',data:{labels:mos,datasets:[{label:'Won',data:mos.map(m=>bm[m].w),backgroundColor:'#3ecf72',borderRadius:3},{label:'Lost',data:mos.map(m=>bm[m].l),backgroundColor:'#ff5c5c',borderRadius:3},{label:'Open',data:mos.map(m=>bm[m].o),backgroundColor:'#4f7fff',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,ticks:{color:'#8890a8',autoSkip:false,maxRotation:45},grid:{color:'rgba(255,255,255,0.04)'}},y:{stacked:true,ticks:{color:'#8890a8',stepSize:1},grid:{color:'rgba(255,255,255,0.04)'}}}}});
     const trs=mos.map(mo=>`<tr><td class="tdn">${mo}</td><td><span class="b bg">${bm[mo].w}</span></td><td><span class="b br">${bm[mo].l}</span></td><td><span class="b bb">${bm[mo].o}</span></td><td>${bm[mo].w+bm[mo].l+bm[mo].o}</td><td>$${(bm[mo].wA/1000).toFixed(0)}K</td></tr>`).join('');
-    document.getElementById('bydate-t').innerHTML = `<div class="tc"><div class="th-bar"><span class="th-bar-title">Breakdown by Month</span></div><table><thead><tr><th>الشهر</th><th>Won</th><th>Lost</th><th>Open</th><th>المجموع</th><th>قيمة Won</th></tr></thead><tbody>${trs||'<tr><td colspan="6" class="empty">No data</td></tr>'}</tbody></table></div>`;
+    document.getElementById('bydate-t').innerHTML = `<div class="tc"><div class="th-bar"><span class="th-bar-title">Breakdown by Month</span></div><table><thead><tr><th>الشهر</th><th>Won</th><th>Lost</th><th>Open</th><th>الPMجPMوع</th><th>قيPMة Won</th></tr></thead><tbody>${trs||'<tr><td colspan="6" class="empty">No data</td></tr>'}</tbody></table></div>`;
     markUpd();
   } catch(e) { document.getElementById('bydate-t').innerHTML = errDiv(e.message); }
 }
