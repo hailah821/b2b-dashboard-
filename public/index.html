@@ -9,10 +9,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 :root {
-  --bg:#f5f5f8; --bg2:#ffffff; --bg3:#f0f0f5; --bg4:#e8e8f0;
-  --border:rgba(72,72,136,0.12); --border2:rgba(72,72,136,0.2);
-  --text:#1a1a2e; --text2:#555577; --text3:#9999bb;
-  --accent:#484888; --accent2:#363670;
+  --bg:#0d0f12; --bg2:#141720; --bg3:#1c2030; --bg4:#242840;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.12);
+  --text:#e8eaf0; --text2:#8890a8; --text3:#555d78;
+  --accent:#4f7fff; --accent2:#2d55cc;
   --green:#3ecf72; --red:#ff5c5c; --amber:#f5a623; --teal:#2dd4bf;
   --font:'IBM Plex Sans Arabic',sans-serif; --mono:'IBM Plex Mono',monospace;
   --r:10px; --rl:16px;
@@ -200,7 +200,7 @@ input::placeholder{color:var(--text3)}
     <div class="nav-sec" style="margin-top:.5rem">System</div>
     <button class="nav-item" onclick="go('settings')">
       <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-      Settings
+      الإعدادات
     </button>
   </nav>
   <div class="sidebar-foot">
@@ -216,13 +216,13 @@ input::placeholder{color:var(--text3)}
   <div class="topbar">
     <div class="topbar-title" id="topbar-title">Contacts</div>
     <div class="topbar-right">
-      <div class="ar-badge"><div class="ar-pulse"></div>Auto refresh</div>
+      <div class="ar-badge"><div class="ar-pulse"></div>تحديث تلقائي</div>
       <select id="qfilter" onchange="refreshCurrent()">
         <option value="this_quarter">This Quarter</option>
         <option value="last_quarter">Last Quarter</option>
         <option value="this_year">This Year</option>
       </select>
-      <button class="btn btn-p" onclick="refreshCurrent()">↻ Refresh</button>
+      <button class="btn btn-p" onclick="refreshCurrent()">↻ تحديث</button>
       <span class="last-upd" id="last-upd"></span>
     </div>
   </div>
@@ -231,28 +231,28 @@ input::placeholder{color:var(--text3)}
 
     <!-- CONTACTS -->
     <div class="sec active" id="sec-contacts">
-      <div class="ph"><h1>Contacts</h1><p>HubSpot CRM Contacts</p></div>
+      <div class="ph"><h1>Contacts</h1><p>جهات الاتصال من HubSpot CRM</p></div>
       <div class="mg" id="contacts-m"></div>
-      <div id="contacts-t"><div class="loading"><div class="spin"></div>Loading...</div></div>
+      <div id="contacts-t"><div class="loading"><div class="spin"></div>جاري التحميل...</div></div>
     </div>
 
     <!-- COMPANIES -->
     <div class="sec" id="sec-companies">
-      <div class="ph"><h1>Companies</h1><p>HubSpot CRM Companies</p></div>
+      <div class="ph"><h1>Companies</h1><p>الشركات من HubSpot CRM</p></div>
       <div class="mg" id="companies-m"></div>
-      <div id="companies-t"><div class="loading"><div class="spin"></div>Loading...</div></div>
+      <div id="companies-t"><div class="loading"><div class="spin"></div>جاري التحميل...</div></div>
     </div>
 
     <!-- DEALS -->
     <div class="sec" id="sec-deals">
-      <div class="ph"><h1>Deals</h1><p>Deals — Close Date Filter This Quarter</p></div>
+      <div class="ph"><h1>Deals</h1><p>الصفقات — فلتر Close Date هذا الربع</p></div>
       <div class="mg" id="deals-m"></div>
-      <div id="deals-t"><div class="loading"><div class="spin"></div>Loading...</div></div>
+      <div id="deals-t"><div class="loading"><div class="spin"></div>جاري التحميل...</div></div>
     </div>
 
     <!-- ACTIVITY -->
     <div class="sec" id="sec-activity">
-      <div class="ph"><h1>Activity Leaderboard</h1><p>Sales Ranking by Meetings with Type Breakdown</p></div>
+      <div class="ph"><h1>Activity Leaderboard</h1><p>ترتيب المبيعات حسب Meetings مع Type Breakdown</p></div>
       <div class="mg" id="activity-m"></div>
       <div class="cg">
         <div class="cc full">
@@ -278,7 +278,7 @@ input::placeholder{color:var(--text3)}
 
     <!-- WON / LOST -->
     <div class="sec" id="sec-wonlost">
-      <div class="ph"><h1>Deals Won / Lost</h1><p>Deals Won and Lost This Quarter</p></div>
+      <div class="ph"><h1>Deals Won / Lost</h1><p>الصفقات المربوحة والخاسرة هذا الربع</p></div>
       <div class="mg" id="wonlost-m"></div>
       <div class="cg">
         <div class="cc">
@@ -309,17 +309,17 @@ input::placeholder{color:var(--text3)}
 
     <!-- SETTINGS -->
     <div class="sec" id="sec-settings">
-      <div class="ph"><h1>Settings</h1><p>HubSpot Connection Setup</p></div>
+      <div class="ph"><h1>الإعدادات</h1><p>إعداد الاتصال بـ HubSpot</p></div>
       <div class="sc">
-        <div class="sc-t">حالة الاتAMال</div>
-        <div id="conn-detail" class="sc-d">جاري التحقق PMن الاتAMال بـ HubSpot...</div>
+        <div class="sc-t">حالة الاتصال</div>
+        <div id="conn-detail" class="sc-d">جاري التحقق من الاتصال بـ HubSpot...</div>
       </div>
       <div class="sc">
-        <div class="sc-t">كيف يعPMل الPMوقع؟</div>
-        <div class="sc-d">الPMوقع يسحب البيانات تلقائياً PMن HubSpot كل <strong>5 دقائق</strong> عبر Vercel Serverless Functions. الـ Token PMحفوظ في Vercel Environment Variables — لا يظهر في الكود.</div>
+        <div class="sc-t">كيف يعمل الموقع؟</div>
+        <div class="sc-d">الموقع يسحب البيانات تلقائياً من HubSpot كل <strong>5 دقائق</strong> عبر Vercel Serverless Functions. الـ Token محفوظ في Vercel Environment Variables — لا يظهر في الكود.</div>
       </div>
       <div class="sc">
-        <div class="sc-t">Scopes الPMطلوبة في HubSpot</div>
+        <div class="sc-t">Scopes المطلوبة في HubSpot</div>
         <div class="code">crm.objects.contacts.read
 crm.objects.companies.read
 crm.objects.deals.read
@@ -346,7 +346,7 @@ let refreshTimer = null;
 const TITLES = {
   contacts:'Contacts', companies:'Companies', deals:'Deals',
   activity:'Activity Leaderboard', dealboard:'Deal Leaderboard',
-  wonlost:'Deals Won / Lost', bydate:'Deals by Date', settings:'Settings'
+  wonlost:'Deals Won / Lost', bydate:'Deals by Date', settings:'الإعدادات'
 };
 
 // ── INIT ────────────────────────────────────────────
@@ -418,16 +418,16 @@ async function checkConn() {
   try {
     await api('/api/owners');
     document.getElementById('dot').className = 'dot on';
-    document.getElementById('conn-txt').textContent = 'Connected to HubSpot';
-    document.getElementById('conn-detail').innerHTML = '<span class="status-ok">✓ الاتAMال يعPMل بشكل AMحيح — البيانات تُحدَّث كل 5 دقائق</span>';
+    document.getElementById('conn-txt').textContent = 'متصل بـ HubSpot';
+    document.getElementById('conn-detail').innerHTML = '<span class="status-ok">✓ الاتصال يعمل بشكل صحيح — البيانات تُحدَّث كل 5 دقائق</span>';
   } catch(e) {
     document.getElementById('dot').className = 'dot';
-    document.getElementById('conn-txt').textContent = 'خطأ في الاتAMال';
-    document.getElementById('conn-detail').innerHTML = '<span class="status-err">✗ تعذر الاتAMال — تأكد PMن إعداد HUBSPOT_TOKEN في Vercel Environment Variables</span>';
+    document.getElementById('conn-txt').textContent = 'خطأ في الاتصال';
+    document.getElementById('conn-detail').innerHTML = '<span class="status-err">✗ تعذر الاتصال — تأكد من إعداد HUBSPOT_TOKEN في Vercel Environment Variables</span>';
   }
 }
 
-function markUpd() { document.getElementById('last-upd').textContent = 'آخر Refresh ' + new Date().toLocaleTimeString('ar'); }
+function markUpd() { document.getElementById('last-upd').textContent = 'آخر تحديث ' + new Date().toLocaleTimeString('ar'); }
 
 function kd(n) { return charts[n] ? (charts[n].destroy(), delete charts[n], true) : true; }
 
@@ -435,7 +435,7 @@ function errDiv(msg) { return `<div class="err">⚠ ${msg}</div>`; }
 
 // ── CONTACTS ─────────────────────────────────────────
 async function loadContacts() {
-  document.getElementById('contacts-t').innerHTML = '<div class="loading"><div class="spin"></div>Loading...</div>';
+  document.getElementById('contacts-t').innerHTML = '<div class="loading"><div class="spin"></div>جاري التحميل...</div>';
   try {
     const d = await api('/api/contacts');
     const sm = {customer:'bg',lead:'bb',opportunity:'ba',subscriber:'bt',marketingqualifiedlead:'ba',salesqualifiedlead:'ba'};
@@ -446,14 +446,14 @@ async function loadContacts() {
       const p=c.properties, nm=[p.firstname,p.lastname].filter(Boolean).join(' ')||'—';
       return `<tr><td class="tdn">${nm}</td><td>${p.email||'—'}</td><td>${p.company||'—'}</td><td><span class="b ${sm[p.lifecyclestage]||'bb'}">${p.lifecyclestage||'—'}</span></td><td>${p.createdate?new Date(p.createdate).toLocaleDateString('ar-SA'):'—'}</td></tr>`;
     }).join('');
-    document.getElementById('contacts-t').innerHTML = `<div class="tc"><div class="th-bar"><span class="th-bar-title">Contacts</span><span class="tc-count">${(d.results||[]).length} records</span></div><table><thead><tr><th>Name</th><th>Email</th><th>Company</th><th>Stage</th><th>Date Added</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="empty">No data</td></tr>'}</tbody></table></div>`;
+    document.getElementById('contacts-t').innerHTML = `<div class="tc"><div class="th-bar"><span class="th-bar-title">Contacts</span><span class="tc-count">${(d.results||[]).length} سجل</span></div><table><thead><tr><th>الاسم</th><th>البريد</th><th>الشركة</th><th>المرحلة</th><th>تاريخ الإضافة</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="empty">لا توجد بيانات</td></tr>'}</tbody></table></div>`;
     markUpd();
   } catch(e) { document.getElementById('contacts-t').innerHTML = errDiv(e.message); }
 }
 
 // ── COMPANIES ────────────────────────────────────────
 async function loadCompanies() {
-  document.getElementById('companies-t').innerHTML = '<div class="loading"><div class="spin"></div>Loading...</div>';
+  document.getElementById('companies-t').innerHTML = '<div class="loading"><div class="spin"></div>جاري التحميل...</div>';
   try {
     const d = await api('/api/companies');
     document.getElementById('companies-m').innerHTML = `
@@ -463,14 +463,14 @@ async function loadCompanies() {
       const p=c.properties;
       return `<tr><td class="tdn">${p.name||'—'}</td><td>${p.domain||'—'}</td><td>${p.industry||'—'}</td><td>${p.city||'—'}</td><td>${p.numberofemployees?Number(p.numberofemployees).toLocaleString():'—'}</td><td>${p.annualrevenue?'$'+Number(p.annualrevenue).toLocaleString():'—'}</td></tr>`;
     }).join('');
-    document.getElementById('companies-t').innerHTML = `<div class="tc"><div class="th-bar"><span class="th-bar-title">Companies</span><span class="tc-count">${(d.results||[]).length} شركة</span></div><table><thead><tr><th>Company</th><th>الدوPMين</th><th>القطاع</th><th>الPMدينة</th><th>الPMوظفون</th><th>الإيرادات</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="empty">No data</td></tr>'}</tbody></table></div>`;
+    document.getElementById('companies-t').innerHTML = `<div class="tc"><div class="th-bar"><span class="th-bar-title">Companies</span><span class="tc-count">${(d.results||[]).length} شركة</span></div><table><thead><tr><th>الشركة</th><th>الدومين</th><th>القطاع</th><th>المدينة</th><th>الموظفون</th><th>الإيرادات</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="empty">لا توجد بيانات</td></tr>'}</tbody></table></div>`;
     markUpd();
   } catch(e) { document.getElementById('companies-t').innerHTML = errDiv(e.message); }
 }
 
 // ── DEALS ────────────────────────────────────────────
 async function loadDeals() {
-  document.getElementById('deals-t').innerHTML = '<div class="loading"><div class="spin"></div>Loading...</div>';
+  document.getElementById('deals-t').innerHTML = '<div class="loading"><div class="spin"></div>جاري التحميل...</div>';
   try {
     const {s,e} = getQDates();
     const d = await api(`/api/deals?start=${fmt(s)}&end=${fmt(e)}`);
@@ -483,15 +483,15 @@ async function loadDeals() {
     document.getElementById('deals-m').innerHTML = `
       <div class="mc"><div class="mc-l">Total Deals</div><div class="mc-v">${(d.results||[]).length}</div></div>
       <div class="mc"><div class="mc-l">Pipeline Value</div><div class="mc-v a">$${(pipe/1000).toFixed(0)}K</div></div>
-      <div class="mc"><div class="mc-l">Closed Won</div><div class="mc-v g">$${(won/1000).toFixed(0)}K</div><div class="mc-s">${wc} deal</div></div>
-      <div class="mc"><div class="mc-l">Closed Lost</div><div class="mc-v r">$${(lost/1000).toFixed(0)}K</div><div class="mc-s">${lc} deal</div></div>
+      <div class="mc"><div class="mc-l">Closed Won</div><div class="mc-v g">$${(won/1000).toFixed(0)}K</div><div class="mc-s">${wc} صفقة</div></div>
+      <div class="mc"><div class="mc-l">Closed Lost</div><div class="mc-v r">$${(lost/1000).toFixed(0)}K</div><div class="mc-s">${lc} صفقة</div></div>
       <div class="mc"><div class="mc-l">Win Rate</div><div class="mc-v">${wc+lc>0?Math.round(wc/(wc+lc)*100):0}%</div></div>`;
     const sm={closedwon:'bg',closedlost:'br',appointmentscheduled:'bb',qualifiedtobuy:'ba',contractsent:'ba',opportunity:'bt',nurturing:'bt',decisionmakerboughtin:'ba',presentationscheduled:'bb'};
     const rows=(d.results||[]).map(x=>{
       const p=x.properties;
       return `<tr><td class="tdn">${p.dealname||'—'}</td><td>${p.amount?'$'+Number(p.amount).toLocaleString():'—'}</td><td><span class="b ${sm[p.dealstage]||'bb'}">${p.dealstage||'—'}</span></td><td>${own(p.hubspot_owner_id)}</td><td>${p.closedate?new Date(p.closedate).toLocaleDateString('ar-SA'):'—'}</td></tr>`;
     }).join('');
-    document.getElementById('deals-t').innerHTML = `<div class="tc"><div class="th-bar"><span class="th-bar-title">Deals</span><span class="tc-count">${(d.results||[]).length} deal</span></div><table><thead><tr><th>Deal</th><th>Value</th><th>Stage</th><th>Owner</th><th>Close Date</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="empty">No data</td></tr>'}</tbody></table></div>`;
+    document.getElementById('deals-t').innerHTML = `<div class="tc"><div class="th-bar"><span class="th-bar-title">Deals</span><span class="tc-count">${(d.results||[]).length} صفقة</span></div><table><thead><tr><th>الصفقة</th><th>القيمة</th><th>المرحلة</th><th>المسؤول</th><th>تاريخ الإغلاق</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="empty">لا توجد بيانات</td></tr>'}</tbody></table></div>`;
     markUpd();
   } catch(e) { document.getElementById('deals-t').innerHTML = errDiv(e.message); }
 }
@@ -520,7 +520,7 @@ async function loadActivity() {
         <div class="lb-nm">${own(o)}</div>
         <span class="b bb">Meetings: ${n}</span>
         <div class="lb-bw"><div class="lb-bf" style="width:${Math.round(n/maxV*100)}%;background:#4f7fff"></div></div>
-      </div>`).join('')||'<div class="empty">No data</div>';
+      </div>`).join('')||'<div class="empty">لا توجد بيانات</div>';
     markUpd();
   } catch(e) { document.getElementById('act-lb').innerHTML = errDiv(e.message); }
 }
@@ -552,7 +552,7 @@ async function loadDealboard() {
         <span style="font-size:13px;color:var(--green);font-weight:500;margin-left:auto">$${(v.amt/1000).toFixed(0)}K</span>
         <span style="font-size:11px;color:var(--text3)">${v.cnt} deals</span>
         <div class="lb-bw"><div class="lb-bf" style="width:${Math.round(v.amt/maxA*100)}%;background:#3ecf72"></div></div>
-      </div>`).join('')||'<div class="empty">No data</div>';
+      </div>`).join('')||'<div class="empty">لا توجد بيانات</div>';
     markUpd();
   } catch(e) { document.getElementById('dlb-lb').innerHTML = errDiv(e.message); }
 }
@@ -572,8 +572,8 @@ async function loadWonLost() {
     });
     const wr=wC+lC>0?Math.round(wC/(wC+lC)*100):0;
     document.getElementById('wonlost-m').innerHTML = `
-      <div class="mc"><div class="mc-l">Closed Won</div><div class="mc-v g">$${(wA/1000).toFixed(0)}K</div><div class="mc-s">${wC} deal</div></div>
-      <div class="mc"><div class="mc-l">Closed Lost</div><div class="mc-v r">$${(lA/1000).toFixed(0)}K</div><div class="mc-s">${lC} deal</div></div>
+      <div class="mc"><div class="mc-l">Closed Won</div><div class="mc-v g">$${(wA/1000).toFixed(0)}K</div><div class="mc-s">${wC} صفقة</div></div>
+      <div class="mc"><div class="mc-l">Closed Lost</div><div class="mc-v r">$${(lA/1000).toFixed(0)}K</div><div class="mc-s">${lC} صفقة</div></div>
       <div class="mc"><div class="mc-l">Win Rate</div><div class="mc-v">${wr}%</div></div>
       <div class="mc"><div class="mc-l">Net Value</div><div class="mc-v ${wA>=lA?'g':'r'}">$${((wA-lA)/1000).toFixed(0)}K</div></div>`;
     kd('wlAmt');kd('wlCnt');kd('wlTime');
@@ -590,7 +590,7 @@ async function loadWonLost() {
 
 // ── DEALS BY DATE ────────────────────────────────────
 async function loadByDate() {
-  document.getElementById('bydate-t').innerHTML = '<div class="loading"><div class="spin"></div>Loading...</div>';
+  document.getElementById('bydate-t').innerHTML = '<div class="loading"><div class="spin"></div>جاري التحميل...</div>';
   try {
     const {s,e} = getQDates();
     const d = await api(`/api/deals?start=${fmt(s)}&end=${fmt(e)}`);
@@ -612,7 +612,7 @@ async function loadByDate() {
     const ctx=document.getElementById('bdChart');
     if(ctx&&mos.length) charts.bdChart=new Chart(ctx,{type:'bar',data:{labels:mos,datasets:[{label:'Won',data:mos.map(m=>bm[m].w),backgroundColor:'#3ecf72',borderRadius:3},{label:'Lost',data:mos.map(m=>bm[m].l),backgroundColor:'#ff5c5c',borderRadius:3},{label:'Open',data:mos.map(m=>bm[m].o),backgroundColor:'#4f7fff',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,ticks:{color:'#8890a8',autoSkip:false,maxRotation:45},grid:{color:'rgba(255,255,255,0.04)'}},y:{stacked:true,ticks:{color:'#8890a8',stepSize:1},grid:{color:'rgba(255,255,255,0.04)'}}}}});
     const trs=mos.map(mo=>`<tr><td class="tdn">${mo}</td><td><span class="b bg">${bm[mo].w}</span></td><td><span class="b br">${bm[mo].l}</span></td><td><span class="b bb">${bm[mo].o}</span></td><td>${bm[mo].w+bm[mo].l+bm[mo].o}</td><td>$${(bm[mo].wA/1000).toFixed(0)}K</td></tr>`).join('');
-    document.getElementById('bydate-t').innerHTML = `<div class="tc"><div class="th-bar"><span class="th-bar-title">Breakdown by Month</span></div><table><thead><tr><th>الشهر</th><th>Won</th><th>Lost</th><th>Open</th><th>الPMجPMوع</th><th>قيPMة Won</th></tr></thead><tbody>${trs||'<tr><td colspan="6" class="empty">No data</td></tr>'}</tbody></table></div>`;
+    document.getElementById('bydate-t').innerHTML = `<div class="tc"><div class="th-bar"><span class="th-bar-title">Breakdown by Month</span></div><table><thead><tr><th>الشهر</th><th>Won</th><th>Lost</th><th>Open</th><th>المجموع</th><th>قيمة Won</th></tr></thead><tbody>${trs||'<tr><td colspan="6" class="empty">لا توجد بيانات</td></tr>'}</tbody></table></div>`;
     markUpd();
   } catch(e) { document.getElementById('bydate-t').innerHTML = errDiv(e.message); }
 }
