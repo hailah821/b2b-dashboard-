@@ -245,14 +245,14 @@ input::placeholder{color:var(--text3)}
 
     <!-- DEALS -->
     <div class="sec" id="sec-deals">
-      <div class="ph"><h1>Deals</h1><p>الصفقات — فلتر Close Date هذا الربع</p></div>
+      <div class="ph"><h1>Deals</h1><p>Deals — Close Date Filter This Quarter</p></div>
       <div class="mg" id="deals-m"></div>
       <div id="deals-t"><div class="loading"><div class="spin"></div>Loading...</div></div>
     </div>
 
     <!-- ACTIVITY -->
     <div class="sec" id="sec-activity">
-      <div class="ph"><h1>Activity Leaderboard</h1><p>ترتيب المبيعات حسب Meetings مع Type Breakdown</p></div>
+      <div class="ph"><h1>Activity Leaderboard</h1><p>Sales Ranking by Meetings with Type Breakdown</p></div>
       <div class="mg" id="activity-m"></div>
       <div class="cg">
         <div class="cc full">
@@ -278,7 +278,7 @@ input::placeholder{color:var(--text3)}
 
     <!-- WON / LOST -->
     <div class="sec" id="sec-wonlost">
-      <div class="ph"><h1>Deals Won / Lost</h1><p>الصفقات المربوحة والخاسرة هذا الربع</p></div>
+      <div class="ph"><h1>Deals Won / Lost</h1><p>Deals Won and Lost This Quarter</p></div>
       <div class="mg" id="wonlost-m"></div>
       <div class="cg">
         <div class="cc">
@@ -483,15 +483,15 @@ async function loadDeals() {
     document.getElementById('deals-m').innerHTML = `
       <div class="mc"><div class="mc-l">Total Deals</div><div class="mc-v">${(d.results||[]).length}</div></div>
       <div class="mc"><div class="mc-l">Pipeline Value</div><div class="mc-v a">$${(pipe/1000).toFixed(0)}K</div></div>
-      <div class="mc"><div class="mc-l">Closed Won</div><div class="mc-v g">$${(won/1000).toFixed(0)}K</div><div class="mc-s">${wc} صفقة</div></div>
-      <div class="mc"><div class="mc-l">Closed Lost</div><div class="mc-v r">$${(lost/1000).toFixed(0)}K</div><div class="mc-s">${lc} صفقة</div></div>
+      <div class="mc"><div class="mc-l">Closed Won</div><div class="mc-v g">$${(won/1000).toFixed(0)}K</div><div class="mc-s">${wc} deal</div></div>
+      <div class="mc"><div class="mc-l">Closed Lost</div><div class="mc-v r">$${(lost/1000).toFixed(0)}K</div><div class="mc-s">${lc} deal</div></div>
       <div class="mc"><div class="mc-l">Win Rate</div><div class="mc-v">${wc+lc>0?Math.round(wc/(wc+lc)*100):0}%</div></div>`;
     const sm={closedwon:'bg',closedlost:'br',appointmentscheduled:'bb',qualifiedtobuy:'ba',contractsent:'ba',opportunity:'bt',nurturing:'bt',decisionmakerboughtin:'ba',presentationscheduled:'bb'};
     const rows=(d.results||[]).map(x=>{
       const p=x.properties;
       return `<tr><td class="tdn">${p.dealname||'—'}</td><td>${p.amount?'$'+Number(p.amount).toLocaleString():'—'}</td><td><span class="b ${sm[p.dealstage]||'bb'}">${p.dealstage||'—'}</span></td><td>${own(p.hubspot_owner_id)}</td><td>${p.closedate?new Date(p.closedate).toLocaleDateString('ar-SA'):'—'}</td></tr>`;
     }).join('');
-    document.getElementById('deals-t').innerHTML = `<div class="tc"><div class="th-bar"><span class="th-bar-title">Deals</span><span class="tc-count">${(d.results||[]).length} صفقة</span></div><table><thead><tr><th>الصفقة</th><th>القيمة</th><th>Stage</th><th>المسؤول</th><th>تاريخ الإغلاق</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="empty">No data</td></tr>'}</tbody></table></div>`;
+    document.getElementById('deals-t').innerHTML = `<div class="tc"><div class="th-bar"><span class="th-bar-title">Deals</span><span class="tc-count">${(d.results||[]).length} deal</span></div><table><thead><tr><th>Deal</th><th>Value</th><th>Stage</th><th>Owner</th><th>Close Date</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="empty">No data</td></tr>'}</tbody></table></div>`;
     markUpd();
   } catch(e) { document.getElementById('deals-t').innerHTML = errDiv(e.message); }
 }
@@ -572,8 +572,8 @@ async function loadWonLost() {
     });
     const wr=wC+lC>0?Math.round(wC/(wC+lC)*100):0;
     document.getElementById('wonlost-m').innerHTML = `
-      <div class="mc"><div class="mc-l">Closed Won</div><div class="mc-v g">$${(wA/1000).toFixed(0)}K</div><div class="mc-s">${wC} صفقة</div></div>
-      <div class="mc"><div class="mc-l">Closed Lost</div><div class="mc-v r">$${(lA/1000).toFixed(0)}K</div><div class="mc-s">${lC} صفقة</div></div>
+      <div class="mc"><div class="mc-l">Closed Won</div><div class="mc-v g">$${(wA/1000).toFixed(0)}K</div><div class="mc-s">${wC} deal</div></div>
+      <div class="mc"><div class="mc-l">Closed Lost</div><div class="mc-v r">$${(lA/1000).toFixed(0)}K</div><div class="mc-s">${lC} deal</div></div>
       <div class="mc"><div class="mc-l">Win Rate</div><div class="mc-v">${wr}%</div></div>
       <div class="mc"><div class="mc-l">Net Value</div><div class="mc-v ${wA>=lA?'g':'r'}">$${((wA-lA)/1000).toFixed(0)}K</div></div>`;
     kd('wlAmt');kd('wlCnt');kd('wlTime');
