@@ -408,9 +408,7 @@ input::placeholder{color:var(--text3)}
           <div class="cc-h"><div class="cc-t">Instagram Followers</div></div>
           <div id="ig-followers" style="padding:1rem"><div class="loading"><div class="spin"></div></div></div>
         </div>
-        <div class="cc">
-          <div class="cc-h"><div class="cc-t">Account Info</div></div>
-          <div id="ig-info" style="padding:1rem"><div class="loading"><div class="spin"></div></div></div>
+        </div>
         </div>
       </div>
     </div>
@@ -930,8 +928,8 @@ async function loadMarketing() {
     `;
     const followEl = document.getElementById('ig-followers');
     if (followEl) followEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:160px;flex-direction:column;gap:12px"><div style="font-size:3.5rem;font-weight:700;color:var(--accent)">' + (d.followers_count||0).toLocaleString() + '</div><div style="font-size:13px;color:var(--text2)">متابع على Instagram</div></div>';
-    const infoEl = document.getElementById('ig-info');
-    if (infoEl) infoEl.innerHTML = '<div style="display:flex;flex-direction:column;gap:10px;padding:.5rem 0"><div style="font-size:16px;font-weight:600;color:var(--text)">@' + (d.name||'ygiiapp') + '</div>' + (d.biography?'<div style="font-size:13px;color:var(--text2);line-height:1.7">' + d.biography + '</div>':'') + '</div>';
+
+
     markUpd();
   } catch(e) {
     if (mEl) mEl.innerHTML = '<div class="err">⚠ ' + e.message + '</div>';
