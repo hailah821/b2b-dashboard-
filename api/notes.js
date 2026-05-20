@@ -13,7 +13,7 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        limit: 100,
+        limit: 25,
         properties: ['hs_note_body', 'hubspot_owner_id', 'hs_createdate', 'hs_timestamp'],
         sorts: [{ propertyName: 'hs_createdate', direction: 'DESCENDING' }],
         filterGroups: [{ filters: [
